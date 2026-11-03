@@ -242,3 +242,5 @@ Quando você estiver fazendo os quizzes do curso, eles vão usar frases técnica
 | *"Para que serve o Kernel Trick no SVM?"* | O soco por baixo da toalha de mesa para separar feijão de arroz! | Para **projetar dados que estão misturados (não-lineares) para uma dimensão mais alta**, onde fica possível separá-los com um corte reto. |
 | *"Qual a diferença entre Bagging (Random Forest) e Boosting (XGBoost)?"* | Os 100 corretores em salas separadas vs. em fila indiana! | **Bagging (Random Forest)** treina árvores independentes **em paralelo** e vota para **reduzir a Variância (Overfitting)**. **Boosting (XGBoost)** treina árvores **em sequência**, onde cada uma corrige o **erro (resíduo)** da anterior. |
 | *"Em quais modelos eu sou obrigado a usar `StandardScaler` (padronizar escala)?"* | Quem usa fita métrica e se confunde entre Salário (milhares) e Idade (dezenas)? | **KNN e SVM** (e Regressão Logística). **Árvores (Decision Tree, Random Forest, XGBoost) NÃO precisam** disso! |
+
+
