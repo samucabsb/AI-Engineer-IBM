@@ -244,3 +244,16 @@ Quando você estiver fazendo os quizzes do curso, eles vão usar frases técnica
 | *"Em quais modelos eu sou obrigado a usar `StandardScaler` (padronizar escala)?"* | Quem usa fita métrica e se confunde entre Salário (milhares) e Idade (dezenas)? | **KNN e SVM** (e Regressão Logística). **Árvores (Decision Tree, Random Forest, XGBoost) NÃO precisam** disso! |
 
 
+---
+
+## 🎯 Bússola Rápida para o Exame de Certificação
+Sempre que bater dúvida numa questão ou problema prático, faça duas perguntas mentais:
+1. **Qual é o formato do Alvo (Y)?**
+   - Número contínuo (preço, poluição, gorjeta) → **Regressão**.
+   - Categoria ou probabilidade de Sim/Não (churn, fraude, remédio) → **Classificação**.
+2. **Qual é a natureza dos Dados?**
+   - Relação linear ou proporcional global → **Regressão Linear / Logística**.
+   - Regras de corte 'SE... ENTÃO' e dados tabulares com quebras → **Árvores de Decisão / Regressão**.
+   - Amostras decididas pela proximidade local → **KNN** (lembre de padronizar a escala!).
+   - Fronteiras complexas com foco nos pontos limítrofes → **SVM** (Margem Máxima + Kernel Trick).
+   - Máxima performance combinando modelos → **Random Forest** (paralelo) ou **XGBoost** (sequencial).
