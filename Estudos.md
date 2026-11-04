@@ -257,3 +257,210 @@ Sempre que bater dúvida numa questão ou problema prático, faça duas pergunta
    - Amostras decididas pela proximidade local → **KNN** (lembre de padronizar a escala!).
    - Fronteiras complexas com foco nos pontos limítrofes → **SVM** (Margem Máxima + Kernel Trick).
    - Máxima performance combinando modelos → **Random Forest** (paralelo) ou **XGBoost** (sequencial).
+---
+
+## 10. Gabarito Comentado do Quiz Oficial da IBM (As 7 Questões do Teste)
+
+Não se sinta mal por ter achado o teste desafiador! As provas de certificação da IBM adoram colocar pegadinhas sutis de vocabulário e contexto prático em inglês. 
+
+Abaixo está a dissecação completa de cada uma das 7 perguntas, com o raciocínio prático sem complicações, o porquê da alternativa correta e onde estava a "casca de banana" de cada questão.
+
+---
+
+### Questão 1: Previsão de Cancelamento de Clientes (Churn em Telecom)
+
+> **Enunciado Original:**
+> *A telecom company uses past customer behavior to predict service cancellations. Which model should they use for this classification task?*
+> 
+> * Naïve Bayes
+> * K-nearest neighbors
+> * **Decision trees** ✅ *(Resposta Correta)*
+> * Neural networks
+
+#### 🔍 O que a questão está perguntando na prática?
+Uma empresa de telecomunicações quer usar o histórico comportamental dos clientes (ex: tempo de assinatura, tipo de plano, fatura mensal, chamadas de suporte) para prever quem vai **cancelar o serviço (Churn)**. Qual modelo de classificação é o mais adequado para essa tarefa?
+
+#### 💡 Por que a resposta é **Decision trees (Árvores de Decisão)**?
+1. **Regras Claras e Acionáveis:** O comportamento de cancelamento em operadoras é orientado por regras de corte lógicas (*"SE o contrato for mês a mês E o cliente fez mais de 3 reclamações no suporte, ENTÃO o risco de cancelamento é 85%"*). Árvores de Decisão extraem exatamente essas regras no formato de fluxograma visual.
+2. **Interpretabilidade para Negócios:** O time de retenção e produto da operadora precisa **entender o motivo** do cancelamento para poder agir (ex: oferecer desconto ou trocar roteador para quem caiu naquele nó específico).
+3. **Dados Heterogêneos (Mistura de números e categorias):** Em telecomunicações, temos tabelas com colunas numéricas (meses de conta, gasto em R$) e colunas categóricas (tipo de plano, forma de pagamento). Árvores lidam com isso de forma direta e natural, sem exigir escalonamento prévio.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* **Naïve Bayes:** Assume a premissa de que todas as características são estatisticamente independentes entre si. Em telecom isso é irreal: o valor da fatura está diretamente ligado ao plano contratado e ao uso de serviços adicionais.
+* **K-nearest neighbors (KNN):** Em operadoras com centenas de milhares de clientes, o KNN se torna lento demais para predição em tempo real e perde eficácia quando há muitas variáveis categóricas sem distância geométrica natural.
+* **Neural networks:** Excessivamente complexas, custosas de treinar e funcionam como uma "caixa-preta", o que dificulta explicar para os gestores da empresa *por que* um cliente foi classificado como provável cancelador.
+
+---
+
+### Questão 2: Critério de Desempate no One-vs-One (OvO)
+
+> **Enunciado Original:**
+> *In a one-versus-one classification approach, how can the final class label be decided in case of a tie?*
+> 
+> * Sequential selection
+> * Random selection
+> * **Probability weighing** ✅ *(Resposta Correta)*
+> * Majority vote
+
+#### 🔍 O que a questão está perguntando na prática?
+Quando usamos a estratégia **One-vs-One (OvO)** para classificar várias classes (duelos 1 contra 1), como é decidida a classe final vencedora **em caso de empate**?
+
+#### 💡 Por que a resposta é **Probability weighing (Ponderação por Probabilidade)**?
+* **A Armadilha da Questão:** Quase todo mundo bate o olho e pensa logo em *Majority vote (Votação por maioria)*! **Mas atenção ao enunciado:** ele perguntou o que fazer **"in case of a tie" (no caso de EMPATE)**!
+* **A lógica do método:** O *Majority vote* é a regra primária (quem tiver mais vitórias nos confrontos diretos ganha). Porém, se a **Classe A** e a **Classe B** terminarem com exatamente o mesmo número de vitórias (ex: empate de 3 a 3), a contagem simples de votos não consegue desempatar.
+* **O critério de desempate:** O modelo então recorre à **força / probabilidade** de cada vitória. Ele soma as probabilidades contínuas ou distâncias de margem (`decision_function` ou `predict_proba`) emitidas pelos modelos individuais. A classe que acumulou a maior probabilidade ou nível de confiança combinada vence o desempate!
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* **Majority vote:** É o processo geral da primeira fase, mas **é justamente ele que produziu o empate**! Não tem como o empate ser resolvido por quem causou o empate.
+* **Random selection:** Escolher na moeda (sorteio) tornaria as previsões imprevisíveis e sem reprodutibilidade; é apenas um último recurso de emergência caso até as probabilidades ponderadas empatem exatamente.
+* **Sequential selection:** Escolher arbitrariamente a primeira classe por ordem alfabética ou de índice seria um viés sem critério estatístico.
+
+---
+
+### Questão 3: O que a Entropia Mede na Árvore de Decisão?
+
+> **Enunciado Original:**
+> *Alice is building a decision tree and wants to evaluate how mixed data is mixed at each node. What does this measure represent in terms of entropy in a decision tree?*
+> 
+> * **The level of disorder or randomness in a node** ✅ *(Resposta Correta)*
+> * The total count of final decision nodes
+> * The average value of a feature in the dataset
+> * The number of the tree's depth from root to leaf
+
+#### 🔍 O que a questão está perguntando na prática?
+Alice está construindo uma árvore de decisão e quer avaliar o quão misturados os dados estão dentro de cada nó. O que essa medida representa quando falamos de **Entropia**?
+
+#### 💡 Por que a resposta é **The level of disorder or randomness in a node (O nível de desordem ou aleatoriedade em um nó)**?
+* **Conceito Fundamental:** Na Teoria da Informação (Shannon) e na física, a palavra **Entropia** é literalmente a medida matemática do **grau de desordem, incerteza ou aleatoriedade**.
+* **Na Árvore de Decisão:**
+  * Se um nó contém 50 pacientes do Remédio A e 50 do Remédio B, a incerteza é total → **Entropia Máxima (1.0)**.
+  * Se a árvore faz uma pergunta que divide perfeitamente o grupo e entrega um nó onde todos os 100 pacientes tomam o Remédio Y, acabou qualquer dúvida → **Entropia Zero (0.0 — nó 100% puro)**.
+* Portanto, calcular a entropia é exatamente medir o **nível de desordem e mistura dos dados no nó**.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* *The total count of final decision nodes:* Isso é o número de folhas (*leaves*).
+* *The average value of a feature:* Isso é apenas a média estatística de uma variável.
+* *The number of the tree's depth:* Isso é a profundidade máxima da árvore (`max_depth`).
+
+---
+
+### Questão 4: Como a Árvore de Regressão Corta Variáveis Contínuas?
+
+> **Enunciado Original:**
+> *A data scientist splits a continuous feature using thresholds between consecutive sorted values. Which method is being used to determine candidate splits in this regression tree?*
+> 
+> * Exhaustive search method
+> * Mean squared error (MSE) method
+> * Entropy reduction method
+> * **Midpoints method** ✅ *(Resposta Correta)*
+
+#### 🔍 O que a questão está perguntando na prática?
+Um cientista de dados está dividindo uma característica contínua (ex: Idade, Preço) criando limites de corte entre valores consecutivos ordenados. Qual método está sendo usado para determinar os **candidatos a corte** nessa árvore de regressão?
+
+#### 💡 Por que a resposta é **Midpoints method (Método dos Pontos Médios)**?
+* **Como a Árvore testa onde cortar variáveis numéricas:**
+  1. A árvore pega todos os valores distintos observados naquela coluna e coloca em ordem crescente (ex: `10, 20, 30, 40`).
+  2. Para criar as perguntas de divisão (Sim ou Não), ela calcula o **ponto médio (midpoint)** entre cada par consecutivo:
+     * Entre 10 e 20 → ponto de corte candidato: `15`
+     * Entre 20 e 30 → ponto de corte candidato: `25`
+     * Entre 30 e 40 → ponto de corte candidato: `35`
+  3. Essa técnica de gerar os potenciais limiares de corte pela média de valores vizinhos ordenados chama-se **Midpoints method**.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* **Mean squared error (MSE) method:** O MSE é a **métrica de custo/erro** usada para avaliar a qualidade de um corte já gerado, mas **não é o método geométrico que gera os candidatos a corte**.
+* **Entropy reduction method:** Entropia só existe em árvores de **classificação** (categorias); em regressão numérica, usamos redução de variância / MSE.
+* **Exhaustive search method:** É um termo abrangente para descrever que o algoritmo avalia todas as opções disponíveis, mas o método específico para estabelecer os valores dos limites entre números contínuos é o cálculo dos pontos médios.
+
+---
+
+### Questão 5: O Efeito de um Valor Alto de K no KNN
+
+> **Enunciado Original:**
+> *A company uses K-nearest neighbors (KNN) to predict customers' interest in a new product. What would happen if they chose a high K value?*
+> 
+> * The training time for the model increases.
+> * **The model may underfit the data.** ✅ *(Resposta Correta)*
+> * The model may predict more.
+> * The model becomes specific.
+
+#### 🔍 O que a questão está perguntando na prática?
+Uma empresa usa KNN para prever o interesse de clientes em um novo produto. O que acontece se ela escolher um valor de K (número de vizinhos) **muito elevado**?
+
+#### 💡 Por que a resposta é **The model may underfit the data (O modelo pode sofrer subajuste / underfitting)**?
+* **A Analogia Prática da Votação:**
+  * Se $K = 1$ (muito pequeno): O modelo consulta apenas 1 vizinho. Se aquele vizinho tiver um gosto atípico, o modelo é enganado facilmente (**Overfitting** / Alta Variância).
+  * Se $K$ for **muito alto** (por exemplo, consultar 800 vizinhos num banco de 1.000 clientes): O modelo não está mais olhando para os gostos locais de quem é parecido; ele está basicamente consultando a população inteira! A resposta será sempre a classe majoritária geral, ignorando os padrões específicos de cada nicho.
+* **Consequência:** A fronteira de decisão fica excessivamente reta e generalista demais, incapaz de capturar os padrões reais dos dados → **Underfitting (Subajuste / Alto Viés)**.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* *The training time for the model increases:* O KNN é um *Lazy Learner* (aprendiz preguiçoso), ou seja, **não tem tempo de treino** (ele apenas armazena os dados na memória). O que aumenta com K alto é o tempo de cálculo durante a predição.
+* *The model becomes specific:* Ocorre o exato oposto: o modelo se torna **excessivamente genérico**, perdendo qualquer especificidade.
+* *The model may predict more:* Não possui significado matemático em machine learning; o modelo continua prevendo uma única classe por registro.
+
+---
+
+### Questão 6: O Parâmetro Épsilon (ε) no Support Vector Regression (SVR)
+
+> **Enunciado Original:**
+> *Rommy is using support vector regression (SVR) to predict housing prices. He adjusts the epsilon (ε) value and notices that more data points are falling outside the shaded prediction band. What does this change in epsilon represent?*
+> 
+> * It affects how features are scaled in input space.
+> * It increases the number of support vectors used.
+> * It modifies the kernel function used for transformation.
+> * **It changes the width of the margin around the predicted curve.** ✅ *(Resposta Correta)*
+
+#### 🔍 O que a questão está perguntando na prática?
+Rommy está usando SVR (Regressão por Vetores de Suporte) para prever preços de imóveis. Ele ajusta o valor de **épsilon (ε)** e nota que **mais pontos estão ficando fora da faixa sombreada de previsão**. O que essa mudança no épsilon representa diretamente?
+
+#### 💡 Por que a resposta é **It changes the width of the margin around the predicted curve (Muda a largura da margem ao redor da curva prevista)**?
+* **O Tubo de Tolerância do SVR (ε-tube):**
+  * Na regressão SVR, o algoritmo constrói uma "faixa de tolerância" (banda sombreada) ao redor da curva de previsão.
+  * O parâmetro **ε (épsilon)** define explicitamente a **largura ou raio dessa margem de tolerância**:
+    * Se ε for amplo, a margem é larga e pontos próximos da linha têm erro desconsiderado (penalidade zero).
+    * Se Rommy **reduz o ε**, a margem encolhe e fica mais estreita. Consequentemente, **mais pontos caem para fora da faixa sombreada**, passando a sofrer penalidade de erro.
+* Portanto, alterar o ε altera essencialmente a **largura da margem de tolerância**.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* *It affects how features are scaled:* O escalonamento de features é realizado por transformadores de dados como `StandardScaler`, e não por parâmetros internos do SVR.
+* *It modifies the kernel function:* A função de kernel é escolhida via hiperparâmetro `kernel` (`'linear'`, `'rbf'`, `'poly'`).
+* *It increases the number of support vectors used:* Embora o aumento de pontos fora do tubo faça com que mais observações se tornem vetores de suporte, essa é uma **consequência indireta**, enquanto o que o ε controla diretamente em sua definição é a **largura da margem**.
+
+---
+
+### Questão 7: A Consequência de um Alto Viés (*High Bias*) no Modelo
+
+> **Enunciado Original:**
+> *Your team is evaluating the model and has identified that it makes inaccurate predictions even on the training data and seems too simple. What is the consequence of high bias in a model?*
+> 
+> * **The model performs poorly on training data due to oversimplification.** ✅ *(Resposta Correta)*
+> * The model is sensitive to noise in the training data.
+> * The model tends to overfit the training data for predictions.
+> * The model performs well on both training and testing datasets.
+
+#### 🔍 O que a questão está perguntando na prática?
+Sua equipe está avaliando um modelo e constatou que ele erra as previsões **até mesmo nos dados de treino** e aparenta ser **simples demais**. Qual é a consequência direta do **alto viés (*high bias*)** em um modelo?
+
+#### 💡 Por que a resposta é **The model performs poorly on training data due to oversimplification (O modelo tem desempenho ruim nos dados de treino devido à supersimplificação)**?
+* **O Dilema Viés vs. Variância (*Bias-Variance Tradeoff*):**
+  * **Alto Viés (*High Bias*) = Subajuste (*Underfitting*):** O modelo é ingênuo e simplista demais (por exemplo, insistir em passar uma linha reta rígida em dados que formam parábolas ou círculos). Por não ter flexibilidade suficiente para aprender a estrutura básica do problema, ele **apresenta alto erro já nos dados de treino**.
+  * **Alta Variância (*High Variance*) = Sobreajuste (*Overfitting*):** O oposto. O modelo é complexo em excesso, decora o ruído e vai excepcionalmente bem no treino, mas erra no teste.
+* Como o enunciado relata expressamente que o modelo comete erros nos dados de treino por ser simples demais, estamos diante da definição padrão de **Underfitting por supersimplificação**.
+
+#### ⚠️ Por que as outras alternativas estão incorretas?
+* *The model is sensitive to noise in the training data:* Característica clássica de **Alta Variância (Overfitting)**, exatamente o oposto de alto viés.
+* *The model tends to overfit the training data:* Alto viés impede o modelo até de se ajustar ao treino, portanto não há como causar overfitting.
+* *The model performs well on both datasets:* Isso descreve um modelo equilibrado e bem ajustado, não um modelo com alto viés problemático.
+
+---
+
+### 📋 Tabela Resumo: Para Gabaritar nas Próximas Tentativas!
+
+| Questão | Tema Central | Pista no Enunciado | Resposta Correta | Regra Prática de Memorização |
+| :---: | :---: | :---: | :---: | :---: |
+| **Q1** | Modelo para Churn | *Customer behavior to predict service cancellations* | **Decision trees** | Cancelamento em telecom = Regras de corte lógicas, acionáveis e interpretáveis. |
+| **Q2** | Multiclasse OvO | *Decided in case of a tie* | **Probability weighing** | Maioria elege no início, mas **empate se resolve somando a probabilidade** contínua. |
+| **Q3** | Entropia | *How mixed data is mixed at each node* | **Level of disorder or randomness** | Entropia em ciências exatas e IA é sempre **medida de desordem ou incerteza**. |
+| **Q4** | Árvore de Regressão | *Thresholds between consecutive sorted values* | **Midpoints method** | Cortes numéricos contínuos = Médias calculadas entre vizinhos adjacentes (**Midpoints**). |
+| **Q5** | Hiperparâmetro KNN | *High K value* | **Underfit the data** | $K$ gigante consulta todo mundo → Fronteira fica genérica demais (**Underfitting**). |
+| **Q6** | SVR | *Epsilon (ε) value / shaded prediction band* | **Width of the margin around predicted curve** | $\varepsilon$ define a **largura do tubo de tolerância** ao redor da curva de regressão. |
+| **Q7** | Conceito de Viés | *High bias / too simple / inaccurate on training* | **Poorly on training data due to oversimplification** | Alto Viés (*Bias*) = Modelo simplório → **Erra até no próprio Treino (Underfitting)**. |
