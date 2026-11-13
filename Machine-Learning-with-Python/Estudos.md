@@ -46,13 +46,13 @@ Imagine dois alunos estudando para essa prova:
 ---
 ## 2. Regressão Linear: Simples, Múltipla e Polinomial
 ### 2.1 Regressão Linear Simples — "A Régua com Uma Pista Só"
-* **Notebook do seu repositório:** [Simple-Linear-Regression.ipynb](./Simple-Linear-Regression.ipynb)
+* **Notebook do seu repositório:** [01-Simple-Linear-Regression.ipynb](./01-Simple-Linear-Regression.ipynb)
 * **Qual é o objetivo?** Adivinhar um **número contínuo** (quanta poluição de $\text{CO}_2$ um carro solta pelo escapamento) olhando para **uma única característica** do carro (por exemplo, o tamanho do motor).
 #### Como ela funciona na prática?
 Imagine que você colocou num gráfico um pontinho azul para cada carro: na horizontal está o **tamanho do motor** e na vertical está **quanto ele polui**. Você vai ver uma nuvem de pontos subindo (motores maiores poluem mais).
 A Regressão Linear Simples pega uma **régua reta** e tenta posicioná-la bem no meio dessa nuvem de pontos, de um jeito que a linha fique o mais perto possível de todos os pontos ao mesmo tempo.
 Depois que a linha vermelha está traçada, prever fica ridículo de fácil: chega um carro novo com motor `3.5`. Você acha o `3.5` embaixo, sobe o dedo até encostar na linha vermelha e olha para o lado: *"Pronto, esse carro vai emitir 262 gramas de $\text{CO}_2$!"*
-#### O que aconteceu no seu Notebook `Simple-Linear-Regression.ipynb`?
+#### O que aconteceu no seu Notebook `01-Simple-Linear-Regression.ipynb`?
 No notebook, o curso pediu para você testar duas pistas diferentes, uma de cada vez, para ver qual adivinhava melhor a poluição do carro:
 1. Primeiro você usou o **Tamanho do Motor (`ENGINESIZE`)**.
 2. Depois você usou o **Consumo de Combustível (`FUELCONSUMPTION_COMB`)**.
@@ -66,12 +66,12 @@ Olhe os dois gráficos que saíram do seu próprio notebook e compare:
 > * Agora mude para o **Slide 2 (Consumo de Combustível)**: Olhe como os pontos azuis estão **muito mais grudados** na linha vermelha, formando quase trilhos de trem! Por quê? Porque é pura química: queimou mais gasolina, saiu mais fumaça ($\text{CO}_2$). Por estar mais grudado na linha, o modelo erra menos no teste (o erro caiu de 851 para **772**)!
 ---
 ### 2.2 Regressão Linear Múltipla e Polinomial — "Juntando Pistas e Dobrando a Régua"
-* **Notebook do seu repositório:** [Multiple-Linear-Regression.ipynb](./Multiple-Linear-Regression.ipynb)
+* **Notebook do seu repositório:** [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb)
 #### Qual é a diferença da Simples para a Múltipla?
 Imagine um corretor avaliando o preço de um apartamento.
 * Se ele usar **Regressão Linear Simples**, ele só pode olhar para **1 coisa**: a metragem ($m^2$). Mas um apartamento de $100m^2$ na favela e um de $100m^2$ de frente para a praia têm preços totalmente diferentes!
 * Na **Regressão Linear Múltipla**, o corretor olha para **várias pistas ao mesmo tempo**: Metragem + Número de Quartos + Vagas de Garagem + Bairro. O modelo descobre o "peso" de cada pista (ex: *"Comece em R$ 100 mil, some R$ 5 mil por metro quadrado, some R$ 30 mil por vaga de garagem e tire R$ 2 mil para cada ano de idade do prédio"*).
-Foi exatamente isso que você fez no notebook [Multiple-Linear-Regression.ipynb](./Multiple-Linear-Regression.ipynb)! Quando você deu ao modelo 3 pistas juntas (**Tamanho do Motor + Quantidade de Cilindros + Consumo de Combustível**), o erro despencou de **985** para **466** (quase metade do erro!), explicando **88,7%** da poluição dos carros!
+Foi exatamente isso que você fez no notebook [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb)! Quando você deu ao modelo 3 pistas juntas (**Tamanho do Motor + Quantidade de Cilindros + Consumo de Combustível**), o erro despencou de **985** para **466** (quase metade do erro!), explicando **88,7%** da poluição dos carros!
 #### E quando surge a Regressão Polinomial?
 Olhe o gráfico abaixo, que saiu do final do seu notebook de Regressão Múltipla quando você tentou prever a poluição usando a coluna `MPG` (Milhas por Galão — quantos quilômetros o carro faz por litro):
 ![Quando os dados fazem curva e a linha reta falha](./assets/Multiple-Linear-Regression_img4.png)
@@ -81,7 +81,7 @@ Repare em duas coisas muito legais nesse gráfico:
    * **A solução:** Quando os dados fazem curva, a Regressão Linear comum fica teimosa tentando passar uma régua reta. A **Regressão Polinomial** é simplesmente dar uma **régua de borracha flexível** para o modelo conseguir acompanhar a curva do escorregador!
 ---
 ## 3. Regressão Logística: O Modelo que Diz "Qual é a Chance de Sim ou Não?"
-* **Notebook do seu repositório:** [Logistic-Regression.ipynb](./Logistic-Regression.ipynb)
+* **Notebook do seu repositório:** [03-Logistic-Regression.ipynb](./03-Logistic-Regression.ipynb)
 ### A Maior Confusão de Todas: "Se o nome é Regressão, por que serve para Classificar?"
 Não deixe o nome te enganar! A **Regressão Logística é um modelo de CLASSIFICAÇÃO**.
 O objetivo dela **NÃO** é prever quantos reais algo custa, e sim responder uma pergunta de **SIM (1) ou NÃO (0)** calculando a **probabilidade (de 0% a 100%)** daquilo acontecer.
@@ -92,7 +92,7 @@ Imagine que você quer prever se um aluno vai Passar (1) ou Reprovar (0) com bas
 * **Na esquerda (Regressão Linear — ERRADO):** Uma reta não tem teto nem chão! Se o cara estudou 13 horas, a reta diz que ele tem **140% de chance de passar** (o que não existe!). Se estudou pouco, diz que tem **-20% de chance**.
 * **Na direita (Regressão Logística — CORRETO):** Ela usa um freio chamado **Curva Sigmóide (formato de "S")**. Não importa quão extremo seja o valor, a curva **nunca passa de 100% (1.0)** no topo e **nunca desce abaixo de 0% (0.0)** no chão!
 * **Como ela toma a decisão final?** Ela passa uma linha pontilhada no **meio (50% ou 0.5)**. Se a curva disser que o cliente tem **72% de chance de cancelar**, como passou de 50%, o modelo carimba: **`1 (Vai cancelar)`**. Se der **18%**, carimba: **`0 (Vai ficar)`**.
-### O que aconteceu no seu Notebook `Logistic-Regression.ipynb`?
+### O que aconteceu no seu Notebook `03-Logistic-Regression.ipynb`?
 No notebook, você trabalhou para uma empresa de telefonia tentando adivinhar quais clientes iam cancelar o plano (`churn`).
 ![Quais características empurram o cliente para cancelar ou ficar?](./assets/Logistic-Regression_img1.png)
 
@@ -105,7 +105,7 @@ No notebook, você trabalhou para uma empresa de telefonia tentando adivinhar qu
    * **A lição prática do Slide 2:** Quando você colocou colunas extras (`callcard` e `wireless`), a barra ficou vermelha e gigante (`0.776` — pior modelo!). Quando você tirou excessos, a barra ficou verde e curtinha (`0.530` — melhor modelo!). **Moral da história:** Jogar informação inútil ou repetida para dentro do modelo só confunde a cabeça dele na hora da prova!
 ---
 ## 4. E Quando Não É Só "Sim ou Não"? (Multiclasse: OvR vs. OvO)
-* **Notebook do seu repositório:** [Multi-Classification.ipynb](./Multi-Classification.ipynb)
+* **Notebook do seu repositório:** [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb)
 A Regressão Logística só sabe separar **dois lados** (Sim vs. Não). Mas no seu notebook de saúde, você precisava classificar pacientes em **7 categorias diferentes de peso** (desde *Abaixo do Peso* até *Obesidade Grau III*). Como fazer um modelo que só sabe separar 2 coisas separar 7?
 Existem dois jeitos de organizar esse campeonato:
 1. **One-vs-Rest (OvR) / One-vs-All (Um contra Todos):**
@@ -113,7 +113,7 @@ Existem dois jeitos de organizar esse campeonato:
 2. **One-vs-One (OvO — Duelos Um contra Um):**
    * Em vez de juntar "todo o resto num saco só", você faz duelos diretos de 2 em 2, igual campeonato de futebol: *Baixo Peso vs. Peso Normal*, depois *Peso Normal vs. Sobrepeso*, etc. No final, quem ganhar mais duelos leva o troféu!
 ### Por que no seu Notebook o "Um contra Um" (92,2%) deu uma surra no "Um contra Todos" (76,1%)?
-Essa é uma dúvida que quase todo aluno tem ao rodar o notebook [Multi-Classification.ipynb](./Multi-Classification.ipynb). Olhe o desenho abaixo que fiz especialmente para você enxergar o motivo:
+Essa é uma dúvida que quase todo aluno tem ao rodar o notebook [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb). Olhe o desenho abaixo que fiz especialmente para você enxergar o motivo:
 ![A Analogia do Sanduíche: Por que o OvR falha na classe do meio](./assets/comparacao_ovr_vs_ovo.png)
 
 ![Resultado Real no seu Notebook de Obesidade](./assets/Multi-Classification_img4.png)
@@ -128,7 +128,7 @@ Essa é uma dúvida que quase todo aluno tem ao rodar o notebook [Multi-Classifi
 Lembra daquele jogo de tabuleiro da infância, o **Cara a Cara**, onde você tinha que descobrir o personagem do amigo fazendo perguntas de Sim ou Não? (*"Usa chapéu?", "Tem cabelo loiro?", "Usa óculos?"*).
 A **Árvore de Decisão** funciona **exatamente assim**!
 ### 5.1 Árvore de Decisão (Para Classificar Categorias)
-* **Notebook do seu repositório:** [Decision-Trees.ipynb](./Decision-Trees.ipynb)
+* **Notebook do seu repositório:** [05-Decision-Trees.ipynb](./05-Decision-Trees.ipynb)
 * **Cenário do Notebook:** Um médico precisa decidir qual dos 5 remédios (`Drug A, B, C, X ou Y`) dar para um paciente olhando para Idade, Sexo, Pressão Sanguínea, Colesterol e nível de Sódio/Potássio no sangue (`Na_to_K`).
 #### Como a Árvore monta o fluxograma sozinha? (O conceito de "Pureza / Bagunça")
 Imagine uma cômoda cheia de meias misturadas de 5 cores diferentes. Isso é o começo da árvore: **alta bagunça (que os cientistas chamam de alta *Entropia* ou alto *Gini*)**.
@@ -146,13 +146,13 @@ Vamos ler juntos o **Slide 1** de cima para baixo (como um médico lendo um prot
    * Porque lá no fundo da árvore (no 4º andar), ainda faltava fazer a pergunta do **Colesterol** para diferenciar quem toma o `Remédio C` de quem toma o `Remédio X`. Se você proíbe a árvore de fazer a 4ª pergunta, ela é obrigada a chutar tudo como `Remédio X` e erra todo mundo que precisava do `Remédio C`!
 ---
 ### 5.2 Árvore de Regressão — "O Jogo do Cara a Cara para Adivinhar Números"
-* **Notebook do seu repositório:** [Regression-Trees.ipynb](./Regression-Trees.ipynb)
+* **Notebook do seu repositório:** [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb)
 #### Qual é a diferença entre a Árvore de Decisão e a Árvore de Regressão?
 Essa pergunta cai direto na prova! A estrutura de perguntas de Sim/Não é igualzinha, mas **o que muda é o que tem dentro da gaveta no final**:
 * Na **Árvore de Decisão (Classificação)**, dentro da gaveta final tem categorias (ex: 10 pacientes do Remédio X e 1 do Remédio C $\rightarrow$ vence a maioria: **Remédio X**).
 * Na **Árvore de Regressão**, você quer adivinhar um **número** (no seu notebook, **o valor da gorjeta em dólares** que um passageiro vai dar ao taxista em Nova York). Então a árvore faz perguntas (*"A corrida custou mais de 20 dólares? Passou por pedágio?"*), junta todas as corridas parecidas numa mesma gaveta e **tira a média das gorjetas daquela gaveta** (ex: *"As corridas que caem nesta gaveta dão em média US$ 3,50 de gorjeta"*).
 #### O Perigo de Fazer Perguntas Demais (*Overfitting* na Prática!)
-Olhe o gráfico do seu notebook [Regression-Trees.ipynb](./Regression-Trees_img3.png) quando você deixou a árvore fazer até **12 andares de perguntas (`max_depth = 12`)**:
+Olhe o gráfico do seu notebook [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb) quando você deixou a árvore fazer até **12 andares de perguntas (`max_depth = 12`)**:
 ![Quando a Árvore faz perguntas demais: Overfitting no Táxi](./assets/Regression-Trees_img3.png)
 > [!WARNING]
 > **Olhe o que aconteceu na direita desse gráfico (`max_depth = 12`):**
@@ -161,7 +161,7 @@ Olhe o gráfico do seu notebook [Regression-Trees.ipynb](./Regression-Trees_img3
 > Quando você deixa uma árvore fazer 12 perguntas seguidas, ela cria gavetas hiper-específicas com **1 único passageiro dentro**: *"Passageiro que pegou táxi terça-feira às 14h12, rodou 3,4 km, pagou $14,20 e deu uma gorjeta maluca de $50 porque estava bêbado"*. A árvore **decorou a fofoca** do treino! Quando chega um passageiro normal na terça-feira às 14h12 no teste, a árvore chuta que ele vai dar $50 de gorjeta e erra feio! Com apenas **4 andares de perguntas (`max_depth = 4`)**, a árvore faz médias gerais sensatas e acerta muito mais!
 ---
 ## 6. KNN (Os Vizinhos Mais Próximos): "Diga-me com Quem Andas..."
-* **Notebook do seu repositório:** [K-Nearest-Neighbors.ipynb](./K-Nearest-Neighbors.ipynb)
+* **Notebook do seu repositório:** [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb)
 ### Como o KNN é diferente de TODOS os outros modelos?
 Todos os outros modelos tentam criar uma "regra geral" (uma linha reta ou uma árvore de perguntas) durante o treinamento.
 O **KNN (K-Nearest Neighbors)** é o único modelo que **não cria regra nenhuma antes da hora**! Ele funciona exatamente como você faria se quisesse descobrir o preço de uma casa sem entender de mercado imobiliário:
@@ -176,13 +176,13 @@ Na vida real, duas pessoas de 20 e 60 anos têm estilos de vida totalmente difer
 Mas como o KNN só faz conta de distância bruta, ele acha que `1.000` é muito maior que `40`, então **ele ignora completamente a Idade e decide tudo só pelo Salário**!
 É por isso que no KNN (e no SVM) nós sempre passamos o **`StandardScaler`** antes: ele coloca todas as colunas na mesma régua (ex: de -3 a +3), para que a Idade e o Salário tenham o mesmo direito de voto!
 ### Quantos vizinhos ($K$) eu devo escutar?
-Olhe o gráfico que você gerou no seu notebook [K-Nearest-Neighbors.ipynb](./K-Nearest-Neighbors.ipynb) testando desde $K=1$ vizinho até $K=100$ vizinhos:
+Olhe o gráfico que você gerou no seu notebook [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb) testando desde $K=1$ vizinho até $K=100$ vizinhos:
 ![Como a escolha do número de vizinhos K muda a nota no Teste](./assets/K-Nearest-Neighbors_img3.png)
 * **Se você escutar só $K = 1$ vizinho (ponta esquerda do gráfico):** Na linha azul (Treino) dá 100%, mas na linha laranja (Teste) dá uma nota péssima (~30%). Por quê? Porque se o único vizinho do lado for um ponto fora da curva (um cara rico que mora num bairro simples), você vai ser enganado por ele!
 * **Quando você aumenta para $K = 38$ vizinhos:** A linha laranja (Teste) sobe para o seu melhor resultado (**41%**), porque ao perguntar para uma comissão de 38 vizinhos, a opinião da maioria abafa os vizinhos esquisitos!
 ---
 ## 7. SVM (Support Vector Machine): A Avenida Mais Larga e o Lençol Elástico
-* **Notebook do seu repositório:** [Support-Vector-Machines.ipynb](./Support-Vector-Machines.ipynb)
+* **Notebook do seu repositório:** [07-Support-Vector-Machines.ipynb](./07-Support-Vector-Machines.ipynb)
 ### Qual é a diferença entre o SVM e a Regressão Logística?
 Tanto a Regressão Logística quanto o SVM básico separam dois grupos passando uma linha divisória. Mas a filosofia deles é totalmente diferente:
 * Imagine separar a torcida do **Time A** da torcida do **Time B** num estádio.
@@ -192,7 +192,7 @@ Tanto a Regressão Logística quanto o SVM básico separam dois grupos passando 
 Imagine que em cima de uma mesa você tem **feijões pretos formando uma rodinha no centro**, e **grãos de arroz branco formando um anel em volta** dos feijões.
 Tente colocar um lápis reto em cima da mesa para deixar todos os feijões de um lado e todo o arroz do outro... **Não dá!**
 O que o **Truque do Kernel** faz? Ele dá um "soco por baixo da toalha da mesa" bem no centro! Os feijões pretos voam para o alto (**3ª dimensão**), enquanto o arroz continua baixo na mesa. Enquanto os feijões estão no ar, o SVM passa uma folha de papel reta cortando o ar entre os feijões lá em cima e o arroz lá embaixo! Simples e genial.
-### O Caso de Fraude de Cartão de Crédito no seu Notebook `Support-Vector-Machines.ipynb`
+### O Caso de Fraude de Cartão de Crédito no seu Notebook `07-Support-Vector-Machines.ipynb`
 Olhe os dois gráficos que saíram do seu laboratório de detecção de fraude bancária:
 ![Apenas 0,17% das compras são fraudes!](./assets/Support-Vector-Machines_img1.png)
 
@@ -205,7 +205,7 @@ Olhe os dois gráficos que saíram do seu laboratório de detecção de fraude b
    * Porque a Árvore faz uma pergunta por vez e fica confusa quando tem pistas demais (ela cria galhos inúteis). Já o SVM adora ter muitas pistas (29 dimensões) porque fica mais fácil achar espaço para abrir aquela avenida larga entre as compras normais e as fraudes!
 ---
 ## 8. Random Forest vs. XGBoost: A Batalha dos Gigantes (Ensembles)
-* **Notebook do seu repositório:** [Random-Forests-XGBoost.ipynb](./Random-Forests-XGBoost.ipynb)
+* **Notebook do seu repositório:** [09-Random-Forests-and-XGBoost.ipynb](./09-Random-Forests-and-XGBoost.ipynb)
 Chegamos nos dois modelos mais usados no mercado de trabalho para dados em tabelas.
 Ambos usam a mesma matéria-prima: **várias Árvores de Decisão juntas** (porque uma árvore sozinha erra muito quando vê dados novos).
 Mas a pergunta de um milhão de dólares da prova é: **Qual é a diferença entre a Random Forest e o XGBoost?**
@@ -221,7 +221,7 @@ Imagine que você precisa descobrir o preço exato de uma mansão e decide contr
   1. O **Corretor 1** entra, dá uma olhada rápida e chuta **R$ 400 mil**. Você anota no quadro negro: *"Faltaram R$ 100 mil para acertar!"*.
   2. O **Corretor 2** entra na sala. A missão dele **NÃO** é avaliar a casa do zero — a missão dele é **olhar só para os R$ 100 mil de erro que o Corretor 1 deixou passar** e descobrir o que faltou olhar (ex: *"Ah, o Corretor 1 esqueceu de olhar que tem piscina, isso soma +R$ 80 mil"*). Agora o palpite da dupla está em **R$ 480 mil** (só faltam R$ 20 mil!).
   3. O **Corretor 3** entra focado exclusivamente em consertar os **R$ 20 mil** que ainda faltam, e assim por diante até o Corretor 100!
-### O Resultado desse Duelo no seu Notebook (`Random-Forests-XGBoost.ipynb`)
+### O Resultado desse Duelo no seu Notebook (`09-Random-Forests-and-XGBoost.ipynb`)
 ![Qual modelo chegou mais perto da linha pontilhada perfeita?](./assets/Random-Forests-XGBoost_img1.png)
 
 ![Placar Final: Nota (R²), Erro (MSE) e Velocidade](./assets/Random-Forests-XGBoost_img2.png)
