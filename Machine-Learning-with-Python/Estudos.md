@@ -1,265 +1,567 @@
-# Guia Mestre Didático: Como os Modelos de Machine Learning Realmente Funcionam (Sem "Matematiquês")
-Esqueça as fórmulas cheias de letras gregas. O segredo para dominar Machine Learning e passar na certificação da IBM **não é saber fazer conta na mão** (quem faz a conta é o computador em uma linha de código), e sim **entender a personalidade de cada modelo**: como ele pensa, que tipo de problema ele resolve e **por que ele foi criado para consertar um defeito do modelo anterior**.
+# Guia Mestre Completo de Machine Learning (Didático + Técnico — Todos os Métodos do Curso IBM)
+
+Esqueça decorar equações soltas sem entender o porquê. O segredo para dominar Machine Learning na prática (e mandar bem em projetos reais, entrevistas técnicas e provas da IBM) **é combinar duas camadas ao mesmo tempo**:
+
+1. **A Intuição Mecânica:** qual defeito do algoritmo anterior cada novo método nasceu para corrigir, e como ele "pensa" por dentro.
+2. **O Rigor Técnico:** quais hiperparâmetros controlam viés vs. variância, quais exigem `StandardScaler`, que função de perda cada um otimiza e onde cada algoritmo quebra em dados reais.
+
+Este guia cobre **todos os 20 notebooks do módulo** — da Regressão Linear Simples até Regularização L1/L2, Clustering (K-Means, DBSCAN, HDBSCAN), Redução de Dimensionalidade (PCA, t-SNE, UMAP), Métricas Avançadas e Engenharia de Pipelines com `ColumnTransformer` + `GridSearchCV`.
+
 ---
-## 0. A Escada da Evolução: Por que Existem Tantos Modelos?
-A melhor forma de nunca mais confundir um modelo com o outro é entender que eles formam uma **história de evolução**. Cada modelo novo nasceu porque o anterior travava em algum tipo de problema:
+
+## 0. Mapa Completo: A Escada da Evolução e Todos os Métodos do Módulo
+
+A melhor forma de nunca confundir algoritmos é enxergar que o Machine Learning clássico se divide em **3 grandes famílias** + **1 camada de engenharia e validação**:
+
 ```mermaid
 flowchart TD
-    M1["1. Regressão Linear Simples - Traça uma linha reta usando 1 pista só - (Ex: tamanho do motor -> poluição)"]
-    M1 -->|"Problema: E se 1 pista só não bastar?"| M2["2. Regressão Linear Múltipla - Combina várias pistas ao mesmo tempo - (Motor + Cilindros + Consumo)"]
-    M2 -->|"Problema: E se os dados fizerem curva?"| M3["3. Regressão Polinomial - Troca a régua dura por uma régua flexível - que consegue fazer curvas"]
-    M2 -->|"Problema: E se a resposta não for um número, - mas SIM ou NÃO (Vai cancelar a conta)?"| M4["4. Regressão Logística - Prende a linha num formato de 'S' - entre 0% e 100% de chance"]
-    M4 -->|"Problema: E se forem 7 categorias - em vez de só Sim ou Não?"| M5["5. Multiclasse (OvR e OvO) - Faz campeonatos de 'Um contra Todos' - ou duelos 'Um contra Um'"]
-    M4 -->|"Problema: E se a decisão depender de regras - tipo 'SE tiver febre E pressão alta'?"| M6["6. Árvores (Decisão e Regressão) - Faz perguntas de Sim/Não como no jogo - 'Cara a Cara' até separar os grupos"]
-    M6 -->|"Problema: E se eu quiser decidir olhando - só para os clientes mais parecidos?"| M7["7. KNN (Vizinhos Mais Próximos) - Olha para os K vizinhos mais parecidos - e segue a maioria ('Maria vai com as outras')"]
-    M4 -->|"Problema: E se os grupos estiverem quase - colados ou misturados em círculos?"| M8["8. SVM (Support Vector Machine) - Abre a avenida mais larga possível entre - os grupos ou joga os dados para 3D"]
-    M6 -->|"Problema: Uma árvore sozinha decora - coisas erradas e é instável"| M9["9. Ensembles: Random Forest e XGBoost - Junta 100 árvores (votando juntas - ou corrigindo o erro uma da outra)"]
+    Root["PROBLEMA COM DADOS TABULARES"] --> S["SUPERVISIONADO (Tem gabarito y)"]
+    Root --> U["NÃO SUPERVISIONADO (Sem gabarito y)"]
+    Root --> E["ENGENHARIA & VALIDAÇÃO"]
+
+    S --> SNum["Prever NÚMERO contínuo (Regressão)"]
+    S --> SCat["Prever CATEGORIA ou PROBABILIDADE (Classificação)"]
+
+    SNum --> R1["1-3. Linear Simples / Múltipla / Polinomial"]
+    R1 -->|"Muitas features / Outliers"| R2["4-5. Regularização: Ridge (L2) e Lasso (L1)"]
+    SNum --> R3["6. Árvore de Regressão / SVR"]
+    R3 --> R4["7-8. Random Forest Regressor / XGBoost Regressor"]
+
+    SCat --> C1["9. Regressão Logística (Binária)"]
+    C1 -->|"3+ classes"| C2["10. Multiclasse: OvR vs. OvO vs. Softmax"]
+    SCat --> C3["11. Árvore de Decisão (Gini / Entropia)"]
+    SCat --> C4["12. KNN (Distância / Lazy Learner)"]
+    SCat --> C5["13. SVM (Margem Máxima / Kernel Trick)"]
+    C3 --> C6["14-15. Random Forest / XGBoost Classifier"]
+
+    U --> U1["Agrupamento (Clustering)"]
+    U --> U2["Redução de Dimensionalidade"]
+    U1 --> CL1["16. K-Means (Centróides / Bolhas)"]
+    CL1 -->|"Formas curvas e Outliers"| CL2["17. DBSCAN (Densidade com eps fixo)"]
+    CL2 -->|"Densidades variáveis"| CL3["18. HDBSCAN (Densidade hierárquica)"]
+    U2 --> D1["19. PCA (Projeção Linear Global)"]
+    U2 --> D2["20-21. t-SNE e UMAP (Manifolds Não-Lineares)"]
+
+    E --> E1["Pipeline + ColumnTransformer + StratifiedKFold + GridSearchCV + Prevenção de Data Leakage"]
 ```
+
+### Inventário Técnico dos 21 Métodos & Técnicas do Curso
+
+| # | Método / Técnica | Tipo | Ideia Central (Como pensa) | Precisa Escalar? | Notebook no Repositório |
+| :---: | :--- | :--- | :--- | :---: | :--- |
+| **01** | **Regressão Linear Simples** | Regressão | Reta única minimizando erro quadrático (OLS) | Não* | [01-Simple-Linear-Regression.ipynb](./01-Simple-Linear-Regression.ipynb) |
+| **02** | **Regressão Linear Múltipla** | Regressão | Combinação linear ponderada de $p$ features | Opcional** | [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb) |
+| **03** | **Regressão Polinomial** | Regressão | Gera $x^2, x^3, x_1 x_2$ (`PolynomialFeatures`) e ajusta plano linear | Sim | [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb) |
+| **04** | **Ridge Regression (L2)** | Regressão Regularizada | Encolhe coeficientes grandes ($\alpha \sum w_j^2$); segura colinearidade | **Sim** | [14-Regularization-in-Linear-Regression.ipynb](./14-Regularization-in-Linear-Regression.ipynb) |
+| **05** | **Lasso Regression (L1)** | Regressão Regularizada | Penalidade $\alpha \sum \|w_j\|$ que zera pesos inúteis (*Feature Selection*) | **Sim** | [14-Regularization-in-Linear-Regression.ipynb](./14-Regularization-in-Linear-Regression.ipynb) |
+| **06** | **Regressão Logística** | Classificação | Passa combinação linear na função Sigmóide $\sigma(z) \in (0,1)$ | **Sim** | [03-Logistic-Regression.ipynb](./03-Logistic-Regression.ipynb) |
+| **07** | **OvR, OvO e Multinomial** | Multiclasse | Estratégias para transformar classificadores binários em $K$ classes | **Sim** | [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb) |
+| **08** | **Árvore de Decisão** | Classificação | Cortes ortogonais maximizando Ganho de Informação (Gini / Entropia) | **Não** | [05-Decision-Trees.ipynb](./05-Decision-Trees.ipynb) |
+| **09** | **Árvore de Regressão** | Regressão | Cortes via *Midpoints* minimizando MSE / Variância interna nas folhas | **Não** | [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb) |
+| **10** | **SVM / SVR** | Classif. / Regressão | Maximiza margem nos *Vetores de Suporte* + *Kernel Trick* (ou tubo $\varepsilon$) | **Obrigatório** | [07-Support-Vector-Machines.ipynb](./07-Support-Vector-Machines.ipynb) |
+| **11** | **KNN (K-Nearest Neighbors)** | Classif. / Regressão | *Lazy learner*: vota pelos $K$ vizinhos mais próximos na hora de prever | **Obrigatório** | [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb) |
+| **12** | **Random Forest** | Ensemble (Bagging) | Várias árvores paralelas via *Bootstrap* + subconjunto aleatório de features | **Não** | [09](./09-Random-Forests-and-XGBoost.ipynb), [16](./16-Evaluating-Random-Forest.ipynb), [19](./19-Practice-Project-Titanic-Survival.ipynb), [20](./20-Final-Project-Australian-Rainfall-Classifier.ipynb) |
+| **13** | **XGBoost** | Ensemble (Boosting) | Árvores rasas sequenciais aprendendo com o gradiente do erro residual | **Não** | [09-Random-Forests-and-XGBoost.ipynb](./09-Random-Forests-and-XGBoost.ipynb) |
+| **14** | **K-Means (`k-means++`)** | Clustering | Agrupa em $k$ clusters esféricos minimizando a Inércia até centróides | **Obrigatório** | [10-K-Means-Clustering.ipynb](./10-K-Means-Clustering.ipynb), [17](./17-Evaluating-K-Means-Clustering.ipynb) |
+| **15** | **DBSCAN** | Clustering (Densidade) | Conecta regiões densas por raio fixo `eps` e `min_samples`; marca ruído (`-1`) | **Obrigatório** | [11-DBSCAN-and-HDBSCAN-Clustering.ipynb](./11-DBSCAN-and-HDBSCAN-Clustering.ipynb) |
+| **16** | **HDBSCAN** | Clustering Hierárquico | Generaliza DBSCAN achando clusters de densidades variadas sem `eps` global | **Obrigatório** | [11-DBSCAN-and-HDBSCAN-Clustering.ipynb](./11-DBSCAN-and-HDBSCAN-Clustering.ipynb) |
+| **17** | **PCA** | Redução Linear | Gira eixos ortogonais para concentrar variância (`explained_variance_ratio_`) | **Obrigatório** | [12-Principal-Component-Analysis-PCA.ipynb](./12-Principal-Component-Analysis-PCA.ipynb) |
+| **18** | **t-SNE** | Redução Não-Linear | Preserva probabilidades locais de vizinhança para visualizar 2D (`perplexity`) | **Sim** | [13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb](./13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb) |
+| **19** | **UMAP** | Redução Topológica | Grafo de *manifolds* rápido, preserva estrutura local + global e aceita `.transform()` | **Sim** | [13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb](./13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb) |
+| **20** | **Métricas Avançadas** | Avaliação | Confusion Matrix, Precision/Recall/F1, ROC-AUC, Resíduos, Silhueta, Davies-Bouldin | — | [15](./15-Evaluating-Classification-Models.ipynb), [16](./16-Evaluating-Random-Forest.ipynb), [17](./17-Evaluating-K-Means-Clustering.ipynb) |
+| **21** | **Pipelines & Tuning** | Produção / MLOps | `ColumnTransformer`, `Pipeline`, `StratifiedKFold`, `GridSearchCV` anti-*leakage* | Integrado | [18](./18-ML-Pipelines-and-GridSearchCV.ipynb), [19](./19-Practice-Project-Titanic-Survival.ipynb), [20](./20-Final-Project-Australian-Rainfall-Classifier.ipynb) |
+
+> \*Na Regressão Linear Simples com solução analítica (OLS), escalar não muda as previsões, mas muda a magnitude interpretável dos coeficientes. \*\*Em Regressão Linear Múltipla, escalar é recomendado quando você quer comparar o peso relativo (`coef_`) entre variáveis de grandezas distintas.
+
 ### Enxergando a Personalidade de Cada Modelo numa Única Imagem
-Antes de irmos para as histórias de cada um, olhe para as duas figuras abaixo. Nós demos **exatamente os mesmos pontos** para todos os modelos. Veja como cada um tenta resolver o problema de um jeito visualmente único:
+
+Antes de ir aos detalhes, observe os dois painéis comparativos gerados exatamente sobre os mesmos conjuntos de pontos:
+
 ![Como cada modelo de Classificação separa dois grupos](./assets/comparacao_fronteiras_classificacao.png)
 
 ![Como cada modelo de Regressão desenha uma tendência](./assets/comparacao_modelos_regressao.png)
+
 > [!TIP]
-> **Guarde essa imagem mental (Slide 1 e Slide 2):**
-> * **Modelos Lineares (Regressão Linear / Logística):** São como uma **régua rígida**. Só sabem traçar uma linha reta de ponta a ponta.
-> * **SVM com Kernel:** É como um **elástico**. Consegue fazer curvas redondas abraçando um grupo.
-> * **Árvores (Decisão / Regressão):** Só sabem cortar na horizontal e na vertical, feito uma **faca cortando um tabuleiro de bolo em quadradinhos**. Por isso, quando preveem números (Slide 2, quadro 3), o gráfico parece uma **escada de degraus retos**!
-> * **KNN (Vizinhos):** Cria **ilhas e fronteiras recortadas** como num mapa de países, porque decide ponto a ponto quem mora mais perto.
+> **Guarde essa imagem mental:**
+> * **Modelos Lineares (Regressão Linear / Logística):** São como uma **régua rígida**. Só traçam hiperplanos/retas de ponta a ponta.
+> * **SVM com Kernel RBF:** É como um **elástico**. Consegue abraçar grupos não-lineares com fronteiras suaves.
+> * **Árvores (Decisão / Regressão):** Só cortam em eixos perpendiculares (horizontal e vertical), criando caixas retangulares em classificação e **degraus retos (função em escada)** em regressão.
+> * **KNN (Vizinhos):** Cria **ilhas e fronteiras recortadas** como mapa político (diagrama de Voronoi), decidindo ponto a ponto pelos vizinhos locais.
+
 ---
-## 1. Os 3 Conceitos que Você Precisa Antes de Começar
-Os cursos jogam nomes em inglês como *Overfitting*, *Data Leakage*, *MSE* e *ROC-AUC* sem explicar o que eles significam na vida real. Vamos traduzir:
-### 1.1 Treino vs. Teste (O Simulado e a Prova Oficial)
-Imagine um professor preparando alunos para o vestibular.
-* **Dados de Treino (`X_train`, `y_train`):** São as listas de exercícios com gabarito que o aluno usa em casa para estudar e aprender o padrão.
-* **Dados de Teste (`X_test`, `y_test`):** É a prova oficial no dia do vestibular, com questões inéditas que o aluno **nunca viu antes**.
-* **Por que dividimos os dados (geralmente 80% treino e 20% teste)?** Porque se você testar o modelo com as mesmas perguntas que ele usou para estudar, você não sabe se ele realmente aprendeu a raciocinar ou se apenas tem boa memória!
-### 1.2 *Underfitting* (Subajuste) vs. *Overfitting* (Sobreajuste)
-Imagine dois alunos estudando para essa prova:
-* **O Aluno Preguiçoso (*Underfitting* / Alto Viés):** Ele só leu o título do livro e criou uma regra boba na cabeça: *"Toda questão que tiver número grande eu marco letra A"*. Ele vai mal no simulado em casa **e** vai mal na prova oficial. **Traduzindo para IA:** É quando você usa um modelo simples demais para um problema difícil (ex: tentar usar uma reta dura para prever algo cheio de curvas).
-* **O Aluno "Decoreba" (*Overfitting* / Alta Variância):** Ele não entendeu a matéria, mas decorou que *"no simulado, a questão que começa com a palavra 'Carro' na linha 2 é a letra C, porque tinha uma mancha de café na folha"*. No simulado em casa ele tira **100%**. Mas quando chega na prova oficial (dados de teste) com perguntas novas sem mancha de café, ele tira **zero**! **Traduzindo para IA:** É quando o modelo fica complexo demais e decora até os erros e acidentes dos dados de treino.
-### 1.3 Como damos "Nota" para o Modelo? (As Métricas sem Fórmulas)
-* **Quando o modelo chuta NÚMEROS (Regressão):**
-  * **MAE (Erro Médio Absoluto):** Se o carro emite 200g de $\text{CO}_2$ e o modelo chutou 220g, ele errou por 20g. O MAE é simplesmente a média de quanto o modelo erra para mais ou para menos no dia a dia.
-  * **MSE (Erro Quadrático Médio):** Faz a mesma coisa, mas dá um **castigo muito mais pesado para erros grandes**. Se o modelo errar vários carros por pouquinho, tudo bem; mas se errar um carro feio (por 100g), o MSE explode para te avisar que o modelo deu uma fora grave.
-  * **$R^2$ (R-Quadrado — Nota de 0 a 1):** Pense nele como a **"porcentagem de explicação"**. Um $R^2$ de `0.88` significa que o seu modelo conseguiu explicar **88%** do motivo pelo qual alguns carros poluem mais que outros! Se der `0.0`, seu modelo não serve para nada (é igual a chutar sempre a média). E se der **negativo** (como acontece num dos seus notebooks!), significa que o seu modelo decorou tanta besteira (*Overfitting*) que está errando mais do que uma pessoa que chuta o valor médio de olhos fechados!
+
+## 1. Os 4 Pilares antes de Treinar Qualquer Modelo
+
+### 1.1 Treino vs. Teste e Validação Cruzada
+* **Dados de Treino (`X_train`, `y_train`):** são os exercícios com gabarito usados para o algoritmo ajustar pesos (`coef_`), cortes de árvore ou centróides.
+* **Dados de Teste (`X_test`, `y_test`):** é a prova final com dados **nunca vistos antes** (tipicamente 20% ou 30%), usada para medir a **generalização real**.
+* **Por que dividir com `stratify=y` na classificação?** Se seu dataset tem apenas 23,7% de dias com chuva (ou 0,17% de fraudes), uma divisão puramente aleatória pode jogar proporcionalmente mais ou menos positivos no teste por puro azar. O parâmetro `stratify=y` trava exatamente a mesma proporção de classes no treino e no teste.
+
+### 1.2 *Underfitting* (Alto Viés) vs. *Overfitting* (Alta Variância)
+Todo erro total de um modelo em produção pode ser decomposto em:
+$$\text{Erro Esperado} = \text{Viés}^2 + \text{Variância} + \text{Ruído Irredutível}$$
+
+* **Underfitting (Alto Viés / Subajuste):** Modelo simples demais (ex: reta linear em dados parabólicos, `max_depth=1`, ou KNN com $K$ muito alto). **Sintoma claro:** erro alto já no **treino** e no **teste**.
+* **Overfitting (Alta Variância / Sobreajuste):** Modelo complexo demais (ex: árvore profunda sem poda, polinômio de grau 15, KNN com $K=1$). Ele memoriza até ruído aleatório do treino. **Sintoma claro:** acurácia altíssima no treino (ex: ~100%) seguida de queda forte no teste.
+
+### 1.3 *Data Leakage* (Vazamento de Dados) — O Erro Silencioso Nº 1
+Ocorre quando o modelo recebe durante o treinamento qualquer pista que **não existiria no momento da previsão real**. Há duas formas clássicas que você enfrentou no curso:
+1. **Leakage de Pré-processamento:** aplicar `StandardScaler().fit_transform(X)`, `SimpleImputer` ou `PCA` no dataset inteiro *antes* de separar `X_train` e `X_test`. Isso faz a média e o desvio padrão do conjunto de teste "vazarem" para o treino (solução obrigatória: **`Pipeline`**).
+2. **Leakage Temporal ou de Target:** no projeto final australiano (`20-Final-Project-Australian-Rainfall-Classifier.ipynb`), se você mantiver variáveis coletadas depois do momento da decisão ou confundir a relação temporal entre `RainToday` e `RainTomorrow` ao inverter o alvo, o modelo "cola" do futuro e falha em produção real.
+
+### 1.4 Primeiras Métricas de Regressão
+* **MAE (`mean_absolute_error`):** $\frac{1}{n}\sum |y_i - \hat{y}_i|$. Fácil de ler na unidade original (gramas, dólares); trata todos os erros de forma linear.
+* **MSE (`mean_squared_error`):** $\frac{1}{n}\sum (y_i - \hat{y}_i)^2$. Penaliza erros grandes ao quadrado — usado como função de custo padrão para otimização.
+* **RMSE ($\sqrt{\text{MSE}}$):** Traz a penalidade severa dos erros grandes de volta para a **mesma unidade** do alvo `y`.
+* **$R^2$ (`r2_score` — Coeficiente de Determinação):** Mede quanto da variância do alvo o modelo explica em comparação a simplesmente chutar a média $\bar{y}$:
+  $$R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}$$
+  * `R² = 1.0`: ajuste perfeito.
+  * `R² = 0.0`: modelo tão útil quanto chutar sempre a média.
+  * `R² < 0`: modelo **pior do que chutar a média** (sinal grave de *overfitting* ou ajuste totalmente errado, como ocorreu no notebook 06!).
+
 ---
+
 ## 2. Regressão Linear: Simples, Múltipla e Polinomial
+
 ### 2.1 Regressão Linear Simples — "A Régua com Uma Pista Só"
-* **Notebook do seu repositório:** [01-Simple-Linear-Regression.ipynb](./01-Simple-Linear-Regression.ipynb)
-* **Qual é o objetivo?** Adivinhar um **número contínuo** (quanta poluição de $\text{CO}_2$ um carro solta pelo escapamento) olhando para **uma única característica** do carro (por exemplo, o tamanho do motor).
-#### Como ela funciona na prática?
-Imagine que você colocou num gráfico um pontinho azul para cada carro: na horizontal está o **tamanho do motor** e na vertical está **quanto ele polui**. Você vai ver uma nuvem de pontos subindo (motores maiores poluem mais).
-A Regressão Linear Simples pega uma **régua reta** e tenta posicioná-la bem no meio dessa nuvem de pontos, de um jeito que a linha fique o mais perto possível de todos os pontos ao mesmo tempo.
-Depois que a linha vermelha está traçada, prever fica ridículo de fácil: chega um carro novo com motor `3.5`. Você acha o `3.5` embaixo, sobe o dedo até encostar na linha vermelha e olha para o lado: *"Pronto, esse carro vai emitir 262 gramas de $\text{CO}_2$!"*
-#### O que aconteceu no seu Notebook `01-Simple-Linear-Regression.ipynb`?
-No notebook, o curso pediu para você testar duas pistas diferentes, uma de cada vez, para ver qual adivinhava melhor a poluição do carro:
-1. Primeiro você usou o **Tamanho do Motor (`ENGINESIZE`)**.
-2. Depois você usou o **Consumo de Combustível (`FUELCONSUMPTION_COMB`)**.
-Olhe os dois gráficos que saíram do seu próprio notebook e compare:
+* **Notebook:** [01-Simple-Linear-Regression.ipynb](./01-Simple-Linear-Regression.ipynb)
+* **Equação:** $\hat{y} = \theta_0 + \theta_1 x$
+* **Como calcula:** O algoritmo **OLS (*Ordinary Least Squares*)** escolhe $\theta_0$ (intercepto) e $\theta_1$ (inclinação) que minimizam a soma dos erros quadráticos verticais entre cada ponto real $y_i$ e a reta $\hat{y}_i$.
+
+#### O que aconteceu no Notebook `01`?
+Você comparou duas variáveis individuais para prever emissões de $\text{CO}_2$: `ENGINESIZE` (Tamanho do Motor) vs. `FUELCONSUMPTION_COMB` (Consumo Combinado):
+
 ![Tentativa 1: Usando Tamanho do Motor](./assets/Simple-Linear-Regression_img5.png)
 
 ![Tentativa 2: Usando Consumo de Combustível](./assets/Simple-Linear-Regression_img6.png)
+
 > [!IMPORTANT]
-> **Como um professor lê esses dois gráficos com você:**
-> * Olhe o **Slide 1 (Tamanho do Motor)**: Tá vendo como os pontos azuis estão bem espalhados, longe da linha vermelha? Isso acontece porque existem motores grandes modernos que são econômicos e motores grandes antigos que bebem muito. O erro (MSE) ficou em **851**.
-> * Agora mude para o **Slide 2 (Consumo de Combustível)**: Olhe como os pontos azuis estão **muito mais grudados** na linha vermelha, formando quase trilhos de trem! Por quê? Porque é pura química: queimou mais gasolina, saiu mais fumaça ($\text{CO}_2$). Por estar mais grudado na linha, o modelo erra menos no teste (o erro caiu de 851 para **772**)!
+> **Leitura técnica dos gráficos:**
+> * No **Slide 1 (`ENGINESIZE`)**, há alta dispersão vertical para o mesmo tamanho de motor (motores grandes modernos eficientes vs. antigos menos eficientes) — MSE de teste ficou em **851**.
+> * No **Slide 2 (`FUELCONSUMPTION_COMB`)**, a relação física/química entre litros queimados e $\text{CO}_2$ emitido é quase determinística dentro do tipo de combustível: os pontos formam trilhos estreitos e o MSE caiu de 851 para **772**.
+
 ---
+
 ### 2.2 Regressão Linear Múltipla e Polinomial — "Juntando Pistas e Dobrando a Régua"
-* **Notebook do seu repositório:** [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb)
-#### Qual é a diferença da Simples para a Múltipla?
-Imagine um corretor avaliando o preço de um apartamento.
-* Se ele usar **Regressão Linear Simples**, ele só pode olhar para **1 coisa**: a metragem ($m^2$). Mas um apartamento de $100m^2$ na favela e um de $100m^2$ de frente para a praia têm preços totalmente diferentes!
-* Na **Regressão Linear Múltipla**, o corretor olha para **várias pistas ao mesmo tempo**: Metragem + Número de Quartos + Vagas de Garagem + Bairro. O modelo descobre o "peso" de cada pista (ex: *"Comece em R$ 100 mil, some R$ 5 mil por metro quadrado, some R$ 30 mil por vaga de garagem e tire R$ 2 mil para cada ano de idade do prédio"*).
-Foi exatamente isso que você fez no notebook [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb)! Quando você deu ao modelo 3 pistas juntas (**Tamanho do Motor + Quantidade de Cilindros + Consumo de Combustível**), o erro despencou de **985** para **466** (quase metade do erro!), explicando **88,7%** da poluição dos carros!
-#### E quando surge a Regressão Polinomial?
-Olhe o gráfico abaixo, que saiu do final do seu notebook de Regressão Múltipla quando você tentou prever a poluição usando a coluna `MPG` (Milhas por Galão — quantos quilômetros o carro faz por litro):
+* **Notebook:** [02-Multiple-Linear-Regression.ipynb](./02-Multiple-Linear-Regression.ipynb)
+* **Regressão Múltipla:** $\hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_p x_p$. Cada $\theta_j$ estima quanto `y` muda quando $x_j$ aumenta 1 unidade **mantendo todas as outras variáveis constantes** (*ceteris paribus*).
+  * No Notebook `02`, ao combinar `ENGINESIZE`, `CYLINDERS` e `FUELCONSUMPTION_COMB`, o MSE despencou de **985** para **466**, atingindo **$R^2 \approx 0.887$** (88,7% da variância explicada).
+* **Quando surge a Regressão Polinomial (`PolynomialFeatures`):**
+
 ![Quando os dados fazem curva e a linha reta falha](./assets/Multiple-Linear-Regression_img4.png)
-Repare em duas coisas muito legais nesse gráfico:
-1. **A linha vermelha está descendo!** Por quê? Porque quanto **mais** quilômetros um carro faz com 1 litro de gasolina (mais econômico), **menos** fumaça ele solta!
-2. **Os pontos azuis não seguem uma linha reta — eles fazem uma curva (igual a um escorregador)!** Nas pontas esquerda e direita, os pontos azuis ficam todos para cima da linha vermelha, e no meio ficam para baixo.
-   * **A solução:** Quando os dados fazem curva, a Regressão Linear comum fica teimosa tentando passar uma régua reta. A **Regressão Polinomial** é simplesmente dar uma **régua de borracha flexível** para o modelo conseguir acompanhar a curva do escorregador!
+
+Quando você plotou `MPG` (milhas por galão) vs. emissão de $\text{CO}_2$, a relação real formava uma curva hiperbólica (quanto menor o MPG, muito maior o consumo por km). Uma linha reta sistematicamente erra nas extremidades e no meio.
+* **Como a Regressão Polinomial resolve mantendo a matemática linear nos parâmetros?** O `PolynomialFeatures(degree=d)` cria novas colunas artificiais ($x^2, x^3, x_1 \cdot x_2$) e entrega essa tabela expandida para o próprio `LinearRegression`! Por isso ela ainda é chamada de *modelo linear nos coeficientes $\theta$*, embora desenhe curvas suaves no espaço original $X$.
+* **Cuidado:** grau polinomial alto (`degree=10+`) explode o número de colunas e produz curvas oscilantes absurdamente sensíveis a ruído (**Overfitting clássico**, conhecido como *fenômeno de Runge*).
+
 ---
-## 3. Regressão Logística: O Modelo que Diz "Qual é a Chance de Sim ou Não?"
-* **Notebook do seu repositório:** [03-Logistic-Regression.ipynb](./03-Logistic-Regression.ipynb)
-### A Maior Confusão de Todas: "Se o nome é Regressão, por que serve para Classificar?"
-Não deixe o nome te enganar! A **Regressão Logística é um modelo de CLASSIFICAÇÃO**.
-O objetivo dela **NÃO** é prever quantos reais algo custa, e sim responder uma pergunta de **SIM (1) ou NÃO (0)** calculando a **probabilidade (de 0% a 100%)** daquilo acontecer.
-* *Exemplos reais:* "Qual a chance desse cliente cancelar a operadora de celular (*Churn*)?", "Qual a chance desse e-mail ser Spam?", "Qual a chance desse paciente ter um tumor maligno?".
-### Por que a Regressão Linear não serve para isso? (Olhe o desenho!)
-Imagine que você quer prever se um aluno vai Passar (1) ou Reprovar (0) com base nas horas de estudo. Veja o que acontece se você tentar usar a reta da Regressão Linear contra a curva em "S" da Regressão Logística:
+
+## 3. Regressão Logística: Probabilidades entre 0% e 100%
+
+* **Notebook:** [03-Logistic-Regression.ipynb](./03-Logistic-Regression.ipynb)
+* **Objetivo:** Classificação binária ($y \in \{0, 1\}$), entregando a probabilidade $P(y=1 \mid x) \in (0, 1)$.
+
+### Por que Regressão Linear falha aqui e entra a Curva Sigmóide?
+
 ![Diferença Visual: Regressão Linear vs Regressão Logística](./assets/comparacao_linear_vs_logistica.png)
-* **Na esquerda (Regressão Linear — ERRADO):** Uma reta não tem teto nem chão! Se o cara estudou 13 horas, a reta diz que ele tem **140% de chance de passar** (o que não existe!). Se estudou pouco, diz que tem **-20% de chance**.
-* **Na direita (Regressão Logística — CORRETO):** Ela usa um freio chamado **Curva Sigmóide (formato de "S")**. Não importa quão extremo seja o valor, a curva **nunca passa de 100% (1.0)** no topo e **nunca desce abaixo de 0% (0.0)** no chão!
-* **Como ela toma a decisão final?** Ela passa uma linha pontilhada no **meio (50% ou 0.5)**. Se a curva disser que o cliente tem **72% de chance de cancelar**, como passou de 50%, o modelo carimba: **`1 (Vai cancelar)`**. Se der **18%**, carimba: **`0 (Vai ficar)`**.
-### O que aconteceu no seu Notebook `03-Logistic-Regression.ipynb`?
-No notebook, você trabalhou para uma empresa de telefonia tentando adivinhar quais clientes iam cancelar o plano (`churn`).
+
+1. A reta linear não é limitada entre 0 e 1 (prevê `-20%` ou `140%` de probabilidade).
+2. A **Regressão Logística** aplica a **Função Sigmóide (Logística)** sobre a combinação linear $z = \theta_0 + \theta^T x$:
+   $$\hat{p} = \sigma(z) = \frac{1}{1 + e^{-z}}$$
+   * Se $z \to +\infty$, $\hat{p} \to 1$. Se $z \to -\infty$, $\hat{p} \to 0$. Se $z = 0$, $\hat{p} = 0.5$ (**limiar de decisão padrão**).
+3. **Função de Custo — Por que ela usa *Log Loss* (Entropia Cruzada Binária) e não MSE?**
+   Com Sigmóide dentro do MSE, a curva de erro vira não-convexa (cheia de vales falsos). O **Log Loss** torna o problema **convexo** (garantia de mínimo global único) e pune exponencialmente previsões erradas dadas com alta confiança:
+   $$\text{LogLoss} = -\frac{1}{N} \sum_{i=1}^N \left[ y_i \log(\hat{p}_i) + (1 - y_i)\log(1 - \hat{p}_i) \right]$$
+
+### O que o Notebook `03` (Telco Churn) mostrou na prática?
+
 ![Quais características empurram o cliente para cancelar ou ficar?](./assets/Logistic-Regression_img1.png)
 
 ![Testando adicionar ou remover colunas: O efeito no erro (Log Loss)](./assets/Logistic-Regression_img2.png)
-1. **Olhe o Slide 1 (Barras para a direita vs. esquerda):**
-   * As barras que apontam para a **esquerda (negativas)**, como `tenure` (tempo que a pessoa já é cliente) e `employ` (anos no emprego), são **âncoras de fidelidade**: quanto mais tempo de casa o cliente tem, **menor** a chance de ele cancelar!
-   * Já a barra `equip` apontando forte para a **direita (positiva)** mostra que clientes que alugavam equipamento da operadora estavam cancelando muito mais!
-2. **Olhe o Slide 2 (O que é esse tal de *Log Loss* e por que menos colunas foi melhor?):**
-   * **O que é *Log Loss*?** É um "medidor de teimosia errada". Se o cliente cancelou, e o seu modelo disse *"Ah, ele tinha 45% de chance de cancelar"*, o modelo errou por pouco e leva uma bronca leve. Mas se o modelo bateu no peito e disse *"Tenho 99,9% de certeza absoluta que ele NÃO vai cancelar!"* e o cara cancela, o *Log Loss* aplica uma **multa pesadíssima**! Por isso, **quanto menor a barra do Log Loss, melhor é o modelo**.
-   * **A lição prática do Slide 2:** Quando você colocou colunas extras (`callcard` e `wireless`), a barra ficou vermelha e gigante (`0.776` — pior modelo!). Quando você tirou excessos, a barra ficou verde e curtinha (`0.530` — melhor modelo!). **Moral da história:** Jogar informação inútil ou repetida para dentro do modelo só confunde a cabeça dele na hora da prova!
+
+* **Pesos (`coef_`) como direção de risco:** `tenure` (tempo de casa) e `employ` têm coeficientes negativos (empurram probabilidade para `0` = retenção); `equip` tem coeficiente positivo forte (aumenta chance de *churn*).
+* **Feature Selection reduzindo Log Loss:** adicionar variáveis redundantes/pouco informativas (`callcard`, `wireless`) subiu o *Log Loss* para **0.776**, enquanto um subconjunto limpo reduziu para **0.530** — provando que menos ruído melhora calibração de probabilidade em modelos lineares.
+
 ---
-## 4. E Quando Não É Só "Sim ou Não"? (Multiclasse: OvR vs. OvO)
-* **Notebook do seu repositório:** [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb)
-A Regressão Logística só sabe separar **dois lados** (Sim vs. Não). Mas no seu notebook de saúde, você precisava classificar pacientes em **7 categorias diferentes de peso** (desde *Abaixo do Peso* até *Obesidade Grau III*). Como fazer um modelo que só sabe separar 2 coisas separar 7?
-Existem dois jeitos de organizar esse campeonato:
-1. **One-vs-Rest (OvR) / One-vs-All (Um contra Todos):**
-   * Você cria 7 juízes. O Juiz 1 só pergunta: *"Esse paciente é Peso Normal OU é qualquer outra coisa?"*. O Juiz 2 pergunta: *"Ele é Sobrepeso OU qualquer outra coisa?"*.
-2. **One-vs-One (OvO — Duelos Um contra Um):**
-   * Em vez de juntar "todo o resto num saco só", você faz duelos diretos de 2 em 2, igual campeonato de futebol: *Baixo Peso vs. Peso Normal*, depois *Peso Normal vs. Sobrepeso*, etc. No final, quem ganhar mais duelos leva o troféu!
-### Por que no seu Notebook o "Um contra Um" (92,2%) deu uma surra no "Um contra Todos" (76,1%)?
-Essa é uma dúvida que quase todo aluno tem ao rodar o notebook [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb). Olhe o desenho abaixo que fiz especialmente para você enxergar o motivo:
+
+## 4. Classificação Multiclasse: OvR vs. OvO vs. Softmax
+
+* **Notebook:** [04-Multi-Class-Classification.ipynb](./04-Multi-Class-Classification.ipynb) (7 classes de obesidade)
+
+Quando $K > 2$, um classificador binário como `LogisticRegression` precisa de uma estratégia de extensão:
+
+1. **One-vs-Rest (OvR / One-vs-All):** Treina **$K$ classificadores binários** — cada um separa "Classe $i$ contra todas as outras $(K-1)$ juntas". Na previsão, escolhe a classe com maior probabilidade/score.
+2. **One-vs-One (OvO):** Treina **$\frac{K(K-1)}{2}$ classificadores binários** — um duelo direto para cada par de classes (para 7 classes, são $\frac{7 \times 6}{2} = 21$ classificadores!). Cada duelo dá 1 voto; em caso de empate, vence quem acumular maior soma ponderada de probabilidades (*Probability Weighing*).
+3. **Multinomial (Softmax):** Treina todos os $K$ vetores de peso simultaneamente com **Entropia Cruzada Categórica**, garantindo que $\sum_{k=1}^K \hat{p}_k = 1$.
+
+### Por que no Notebook `04` o OvO (`92,2%`) bateu o OvR (`76,1%`)?
+
 ![A Analogia do Sanduíche: Por que o OvR falha na classe do meio](./assets/comparacao_ovr_vs_ovo.png)
 
 ![Resultado Real no seu Notebook de Obesidade](./assets/Multi-Classification_img4.png)
-> [!IMPORTANT]
-> **A Explicação do Sanduíche (Olhe o quadro esquerdo do Slide 1):**
-> Pense em 3 faixas de peso em fila: **Magro (Esquerda)** $\rightarrow$ **Médio (Meio, em vermelho)** $\rightarrow$ **Obeso (Direita)**.
-> * Quando o **One-vs-Rest (Um contra Todos)** tenta separar a pessoa de **Peso Médio (vermelho)** de "Todo o Resto (cinza)", olhe onde estão os pontos cinzas: tem gente cinza **mais magra na esquerda** E gente cinza **mais gorda na direita**! O grupo vermelho é o presunto no meio de duas fatias de pão!
-> * Agora tente passar **uma única linha reta** que deixe o recheio de um lado e as duas fatias de pão do outro... **É impossível!** Qualquer linha reta que você traçar vai misturar o meio com um dos lados! É por isso que o OvR tirou só **76,1%**.
-> * Já no quadro da direita (**One-vs-One**), o duelo é só entre dois vizinhos por vez (*Magro vs. Médio*, depois *Médio vs. Obeso*). Aí uma linha reta passa no meio de cada dupla sem esforço nenhum, acertando **92,2%**!
+
+Classes ordinais intermediárias (como *Peso Normal* ou *Sobrepeso I* entre *Baixo Peso* e *Obesidade III*) formam um **"sanduíche" geométrico**: quando o OvR agrupa extremos opostos num único grupo "Resto", nenhuma reta linear consegue isolar o recheio central sem invadir as fatias. Já o OvO só compara pares vizinhos por vez, tornando cada duelo linearmente separável!
+
 ---
-## 5. Árvores de Decisão vs. Árvores de Regressão: O Jogo do "Cara a Cara"
-Lembra daquele jogo de tabuleiro da infância, o **Cara a Cara**, onde você tinha que descobrir o personagem do amigo fazendo perguntas de Sim ou Não? (*"Usa chapéu?", "Tem cabelo loiro?", "Usa óculos?"*).
-A **Árvore de Decisão** funciona **exatamente assim**!
-### 5.1 Árvore de Decisão (Para Classificar Categorias)
-* **Notebook do seu repositório:** [05-Decision-Trees.ipynb](./05-Decision-Trees.ipynb)
-* **Cenário do Notebook:** Um médico precisa decidir qual dos 5 remédios (`Drug A, B, C, X ou Y`) dar para um paciente olhando para Idade, Sexo, Pressão Sanguínea, Colesterol e nível de Sódio/Potássio no sangue (`Na_to_K`).
-#### Como a Árvore monta o fluxograma sozinha? (O conceito de "Pureza / Bagunça")
-Imagine uma cômoda cheia de meias misturadas de 5 cores diferentes. Isso é o começo da árvore: **alta bagunça (que os cientistas chamam de alta *Entropia* ou alto *Gini*)**.
-O objetivo da árvore é fazer perguntas que separem as meias em gavetas onde **cada gaveta tenha uma cor só (100% Pura = Entropia Zero!)**.
-Olhe o fluxograma real que o seu próprio notebook desenhou:
+
+## 5. Árvores de Decisão e Árvores de Regressão
+
+### 5.1 Árvore de Decisão (Classificação)
+* **Notebook:** [05-Decision-Trees.ipynb](./05-Decision-Trees.ipynb) (prescrição de 5 fármacos: `Drug A, B, C, X, Y`)
+* **Como ela escolhe cada pergunta?** Em cada nó, o algoritmo CART testa cortes nos atributos e escolhe o split que gera o maior **Ganho de Informação** (maior redução de impureza):
+  * **Entropia de Shannon:** $H(S) = -\sum p_i \log_2(p_i)$ — vai de `0` (nó 100% puro, só uma classe) até $\log_2(K)$ (classes perfeitamente misturadas).
+  * **Índice de Gini:** $G(S) = 1 - \sum p_i^2$ — padrão rápido do `scikit-learn` (evita logaritmos), medindo a probabilidade de classificar errado um item escolhido ao acaso.
+
 ![A Árvore de Remédios criada no seu Notebook](./assets/Decision-Trees_img3.png)
 
 ![O que acontece se cortarmos as perguntas da árvore cedo demais?](./assets/Decision-Trees_img4.png)
-Vamos ler juntos o **Slide 1** de cima para baixo (como um médico lendo um protocolo):
-1. **1ª Pergunta (No topo):** *"O nível de Sódio/Potássio (`Na_to_K`) é menor ou igual a 14.8?"*
-   * Olhe a seta da **Direita (`False` — Não, é maior que 14.8)**: Caíram 73 pacientes nessa gaveta, e **todos os 73 tomam o Remédio Y**! Acabou a dúvida! (`entropy = 0.0` — gaveta 100% limpa!).
-2. **2ª Pergunta (Para quem foi para a esquerda):** *"A Pressão Sanguínea (`BP`) é Alta?"*
-   * Quem tem pressão alta vai para a esquerda e a árvore pergunta a **Idade (`Age <= 50.5`)**: se tiver até 50 anos, toma **Remédio A**; se tiver mais de 50 anos, toma **Remédio B**!
-3. **E por que no Slide 2 a nota cai de 98,3% para 81,6% se limitarmos a árvore a 3 andares (`max_depth = 3`)?**
-   * Porque lá no fundo da árvore (no 4º andar), ainda faltava fazer a pergunta do **Colesterol** para diferenciar quem toma o `Remédio C` de quem toma o `Remédio X`. Se você proíbe a árvore de fazer a 4ª pergunta, ela é obrigada a chutar tudo como `Remédio X` e erra todo mundo que precisava do `Remédio C`!
----
-### 5.2 Árvore de Regressão — "O Jogo do Cara a Cara para Adivinhar Números"
-* **Notebook do seu repositório:** [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb)
-#### Qual é a diferença entre a Árvore de Decisão e a Árvore de Regressão?
-Essa pergunta cai direto na prova! A estrutura de perguntas de Sim/Não é igualzinha, mas **o que muda é o que tem dentro da gaveta no final**:
-* Na **Árvore de Decisão (Classificação)**, dentro da gaveta final tem categorias (ex: 10 pacientes do Remédio X e 1 do Remédio C $\rightarrow$ vence a maioria: **Remédio X**).
-* Na **Árvore de Regressão**, você quer adivinhar um **número** (no seu notebook, **o valor da gorjeta em dólares** que um passageiro vai dar ao taxista em Nova York). Então a árvore faz perguntas (*"A corrida custou mais de 20 dólares? Passou por pedágio?"*), junta todas as corridas parecidas numa mesma gaveta e **tira a média das gorjetas daquela gaveta** (ex: *"As corridas que caem nesta gaveta dão em média US$ 3,50 de gorjeta"*).
-#### O Perigo de Fazer Perguntas Demais (*Overfitting* na Prática!)
-Olhe o gráfico do seu notebook [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb) quando você deixou a árvore fazer até **12 andares de perguntas (`max_depth = 12`)**:
+
+* **Hiperparâmetros de controle (Poda Prévia / *Pre-pruning*):** `max_depth`, `min_samples_split`, `min_samples_leaf`. No Slide 2, limitar `max_depth=3` cortou o galho final que diferenciava `Drug C` de `Drug X` por Colesterol, derrubando a acurácia de **98,3% para 81,6%** (*underfitting*).
+
+### 5.2 Árvore de Regressão (Números Contínuos)
+* **Notebook:** [06-Regression-Trees.ipynb](./06-Regression-Trees.ipynb) (previsão de gorjeta de táxi em NY)
+* **Como funciona por dentro:**
+  1. Para colunas numéricas contínuas, ordena os valores únicos e gera limiares candidatos via **Método dos Pontos Médios (*Midpoints Method*)**.
+  2. Avalia qual corte mais reduz a **Variância / MSE ponderado** entre os filhos esquerdo e direito.
+  3. Na folha final, prevê a **média aritmética** dos valores de treino que caíram ali (gerando gráfico em degraus).
+* **Armadilha crítica (Overfitting severo):** deixar `max_depth=12` criou folhas minúsculas memorizando anomalias do treino — fazendo o **$R^2$ de teste afundar para `-0.064`** (pior que chutar a média!), enquanto `max_depth=4` generalizou muito melhor:
+
 ![Quando a Árvore faz perguntas demais: Overfitting no Táxi](./assets/Regression-Trees_img3.png)
-> [!WARNING]
-> **Olhe o que aconteceu na direita desse gráfico (`max_depth = 12`):**
-> A barra azul (**Erro no Teste**) subiu para o pior nível, e a barra vermelha (**nota $R^2$**) afundou para baixo do zero (**`-0.064` negativo**)!
-> **Por que isso aconteceu?**
-> Quando você deixa uma árvore fazer 12 perguntas seguidas, ela cria gavetas hiper-específicas com **1 único passageiro dentro**: *"Passageiro que pegou táxi terça-feira às 14h12, rodou 3,4 km, pagou $14,20 e deu uma gorjeta maluca de $50 porque estava bêbado"*. A árvore **decorou a fofoca** do treino! Quando chega um passageiro normal na terça-feira às 14h12 no teste, a árvore chuta que ele vai dar $50 de gorjeta e erra feio! Com apenas **4 andares de perguntas (`max_depth = 4`)**, a árvore faz médias gerais sensatas e acerta muito mais!
+
 ---
-## 6. KNN (Os Vizinhos Mais Próximos): "Diga-me com Quem Andas..."
-* **Notebook do seu repositório:** [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb)
-### Como o KNN é diferente de TODOS os outros modelos?
-Todos os outros modelos tentam criar uma "regra geral" (uma linha reta ou uma árvore de perguntas) durante o treinamento.
-O **KNN (K-Nearest Neighbors)** é o único modelo que **não cria regra nenhuma antes da hora**! Ele funciona exatamente como você faria se quisesse descobrir o preço de uma casa sem entender de mercado imobiliário:
-1. Você olha para a casa que quer avaliar.
-2. Você procura na mesma rua as **$K$ casas mais parecidas com ela** (os vizinhos mais próximos).
-3. Se você escolheu olhar para **$K = 5$ vizinhos**, e 4 deles pertencem à categoria "Luxo" e 1 pertence à categoria "Econômica", você conclui por maioria: **"Essa casa também é Luxo!"**
-### A Regra de Ouro do KNN: Por que você é OBRIGADO a padronizar os números (`StandardScaler`)?
-Imagine que o KNN vai medir quão parecido o **Cliente A** é do **Cliente B** usando duas colunas:
-* **Idade:** Cliente A tem `20 anos`, Cliente B tem `60 anos` (Diferença = **40**).
-* **Salário Anual:** Cliente A ganha `R$ 50.000`, Cliente B ganha `R$ 51.000` (Diferença = **1.000**).
-Na vida real, duas pessoas de 20 e 60 anos têm estilos de vida totalmente diferentes, enquanto ganhar 50 mil ou 51 mil por ano é praticamente a mesma coisa!
-Mas como o KNN só faz conta de distância bruta, ele acha que `1.000` é muito maior que `40`, então **ele ignora completamente a Idade e decide tudo só pelo Salário**!
-É por isso que no KNN (e no SVM) nós sempre passamos o **`StandardScaler`** antes: ele coloca todas as colunas na mesma régua (ex: de -3 a +3), para que a Idade e o Salário tenham o mesmo direito de voto!
-### Quantos vizinhos ($K$) eu devo escutar?
-Olhe o gráfico que você gerou no seu notebook [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb) testando desde $K=1$ vizinho até $K=100$ vizinhos:
+
+## 6. KNN (*K-Nearest Neighbors*) — Aprendiz Preguiçoso
+
+* **Notebook:** [08-K-Nearest-Neighbors.ipynb](./08-K-Nearest-Neighbors.ipynb)
+* **Filosofia (*Instance-Based / Lazy Learner*):** Não aprende pesos nem regras no `.fit()`. Apenas indexa os pontos de treino. Na hora do `.predict(x)`, calcula a distância (geralmente Euclidiana, $p=2$) entre $x$ e todos os registros guardados, escolhe os **$K$ vizinhos mais próximos** e faz votação por maioria (classificação) ou média (regressão).
+* **Exigência obrigatória de `StandardScaler`:** Distâncias geométricas são destruídas se uma coluna varia de `0` a `100.000` (salário) e outra de `0` a `80` (idade). Sem padronização ($z = \frac{x - \mu}{\sigma}$), a variável de maior escala domina 100% da distância.
+* **Efeito do hiperparâmetro $K$:**
+  * **$K$ muito pequeno ($K=1$):** fronteira hiper-recortada, sensível a qualquer ruído $\rightarrow$ **Overfitting (Alta Variância)**.
+  * **$K$ muito grande:** consulta quase o dataset inteiro e devolve apenas a classe majoritária global $\rightarrow$ **Underfitting (Alto Viés)**.
+
 ![Como a escolha do número de vizinhos K muda a nota no Teste](./assets/K-Nearest-Neighbors_img3.png)
-* **Se você escutar só $K = 1$ vizinho (ponta esquerda do gráfico):** Na linha azul (Treino) dá 100%, mas na linha laranja (Teste) dá uma nota péssima (~30%). Por quê? Porque se o único vizinho do lado for um ponto fora da curva (um cara rico que mora num bairro simples), você vai ser enganado por ele!
-* **Quando você aumenta para $K = 38$ vizinhos:** A linha laranja (Teste) sobe para o seu melhor resultado (**41%**), porque ao perguntar para uma comissão de 38 vizinhos, a opinião da maioria abafa os vizinhos esquisitos!
+
 ---
-## 7. SVM (Support Vector Machine): A Avenida Mais Larga e o Lençol Elástico
-* **Notebook do seu repositório:** [07-Support-Vector-Machines.ipynb](./07-Support-Vector-Machines.ipynb)
-### Qual é a diferença entre o SVM e a Regressão Logística?
-Tanto a Regressão Logística quanto o SVM básico separam dois grupos passando uma linha divisória. Mas a filosofia deles é totalmente diferente:
-* Imagine separar a torcida do **Time A** da torcida do **Time B** num estádio.
-* A **Regressão Logística** olha para a posição média de toda a torcida A e de toda a torcida B e passa uma fita no meio.
-* O **SVM** é o chefe da tropa de choque: ele não liga para o torcedor que está sentado lá no fundo da arquibancada; ele olha **exclusivamente para os torcedores mais exaltados que estão na primeira fila, quase encostando na outra torcida** (esses pontos da beirada são os famosos **Vetores de Suporte**!). O SVM empurra as duas linhas de frente para criar o **corredor de segurança (Margem) mais largo possível** entre as duas torcidas!
-### E o que é o famoso "Truque do Kernel" (*Kernel Trick*) do SVM?
-Imagine que em cima de uma mesa você tem **feijões pretos formando uma rodinha no centro**, e **grãos de arroz branco formando um anel em volta** dos feijões.
-Tente colocar um lápis reto em cima da mesa para deixar todos os feijões de um lado e todo o arroz do outro... **Não dá!**
-O que o **Truque do Kernel** faz? Ele dá um "soco por baixo da toalha da mesa" bem no centro! Os feijões pretos voam para o alto (**3ª dimensão**), enquanto o arroz continua baixo na mesa. Enquanto os feijões estão no ar, o SVM passa uma folha de papel reta cortando o ar entre os feijões lá em cima e o arroz lá embaixo! Simples e genial.
-### O Caso de Fraude de Cartão de Crédito no seu Notebook `07-Support-Vector-Machines.ipynb`
-Olhe os dois gráficos que saíram do seu laboratório de detecção de fraude bancária:
+
+## 7. SVM & SVR: Margem Máxima e o Truque do Kernel
+
+* **Notebook:** [07-Support-Vector-Machines.ipynb](./07-Support-Vector-Machines.ipynb) (detecção de fraude de cartão de crédito com apenas **0,173%** de positivos)
+* **Diferença estrutural para a Regressão Logística:** Enquanto a Logística usa todos os pontos para ajustar probabilidades, o **SVM Linear** busca o hiperplano que **maximiza a largura da avenida (margem)** apoiando-se exclusivamente nos pontos mais próximos da divisa (**Vetores de Suporte**). Isso o torna muito resistente a pontos distantes bem classificados.
+* **Hiperparâmetro `C` (Margem Suave):** controla a punição para violações da margem (`C` alto = margem estreita, menos tolerância a erro no treino, risco de *overfitting*; `C` baixo = margem larga, mais tolerante a ruído).
+* **Kernel Trick (`kernel='rbf' | 'poly'`):** Quando as classes são inseparáveis no plano 2D (ex: anéis concêntricos), a função Kernel calcula produtos escalares em um espaço de dimensão superior **sem precisar computar explicitamente as coordenadas expandidas**, permitindo que um corte linear na dimensão alta vire uma fronteira circular/elástica no 2D.
+* **SVR (Support Vector Regression):** em vez de minimizar erro de qualquer ponto fora da linha, cria um **"tubo" de tolerância de largura $\varepsilon$ (*epsilon*)**. Pontos dentro da banda $\pm\varepsilon$ têm perda zero; apenas pontos fora da faixa sofrem penalidade linear e viram vetores de suporte. (Reduzir $\varepsilon$ estreita a faixa e deixa mais pontos fora dela!)
+
 ![Apenas 0,17% das compras são fraudes!](./assets/Support-Vector-Machines_img1.png)
 
 ![Árvore de Decisão vs SVM na Caça às Fraudes](./assets/Support-Vector-Machines_img3.png)
-1. **Olhe o Slide 1 (O Perigo da Acurácia Mentilhosa):**
-   * De cada 1.000 compras no cartão, **998 são honestas (verde)** e apenas **2 são ladrões (vermelho — 0,173%)**.
-   * Se você contratar um segurança preguiçoso que dorme o dia inteiro e diz *"Nenhuma compra é fraude"*, ele vai acertar **99,83% das vezes**! A nota de Acurácia dele será 99,8%, mas o banco vai falir porque ele deixou passar 100% dos ladrões!
-   * É por isso que no código aparece `compute_sample_weight('balanced')` (que diz ao modelo: *"Deixar passar 1 ladrão dá uma bronca 500 vezes pior do que incomodar 1 cliente honesto!"*) e avaliamos pela curva **ROC-AUC** (Slide 2), onde o **SVM bateu 0.986** (quase perfeito em separar ladrões de clientes!).
-2. **Por que no Slide 2 o SVM foi melhor com todas as 29 pistas (`0.986`), enquanto a Árvore melhorou quando tiramos 23 pistas (`0.952`)?**
-   * Porque a Árvore faz uma pergunta por vez e fica confusa quando tem pistas demais (ela cria galhos inúteis). Já o SVM adora ter muitas pistas (29 dimensões) porque fica mais fácil achar espaço para abrir aquela avenida larga entre as compras normais e as fraudes!
+
+* **Lição de desbalanceamento no Notebook `07`:** Em fraudes (`99,83%` legítimas), acurácia engana completamente. Usar `compute_sample_weight('balanced')` (ou `class_weight='balanced'`) multiplica o peso da classe minoritária na função de custo, e avaliar com **ROC-AUC** revelou o **SVM (`0.986`)** aproveitando todas as 29 features melhor que uma árvore isolada (`0.952` após corte de features).
+
 ---
-## 8. Random Forest vs. XGBoost: A Batalha dos Gigantes (Ensembles)
-* **Notebook do seu repositório:** [09-Random-Forests-and-XGBoost.ipynb](./09-Random-Forests-and-XGBoost.ipynb)
-Chegamos nos dois modelos mais usados no mercado de trabalho para dados em tabelas.
-Ambos usam a mesma matéria-prima: **várias Árvores de Decisão juntas** (porque uma árvore sozinha erra muito quando vê dados novos).
-Mas a pergunta de um milhão de dólares da prova é: **Qual é a diferença entre a Random Forest e o XGBoost?**
-Imagine que você precisa descobrir o preço exato de uma mansão e decide contratar **100 corretores de imóveis (100 árvores)**:
-### 1. Como funciona a Random Forest (*Bagging* — Democracia em Paralelo)
-* Você coloca os **100 corretores em 100 salas isoladas ao mesmo tempo**. Ninguém conversa com ninguém.
-* Para eles não pensarem igualzinho, você dá para cada corretor uma pasta com fotos um pouco diferentes da casa (uns veem a piscina e a cozinha; outros veem a garagem e a sala).
-* Cada corretor dá o seu palpite completo de preço. No final, você simplesmente **calcula a média dos 100 palpites**!
-* **Por que funciona?** Se o Corretor 1 exagerou para mais (+R$ 50 mil) e o Corretor 2 exagerou para menos (-R$ 50 mil), na média um exagero anula o outro! O objetivo da Random Forest é **acabar com o nervosismo/exagero (*Overfitting*)** de uma árvore sozinha.
-### 2. Como funciona o XGBoost (*Boosting* — Trabalho em Fila Corrigindo Erros)
-* Aqui os 100 corretores **NÃO trabalham ao mesmo tempo**. Eles entram na sala **em fila indiana, um depois do outro**!
-* A mansão vale **R$ 500 mil**:
-  1. O **Corretor 1** entra, dá uma olhada rápida e chuta **R$ 400 mil**. Você anota no quadro negro: *"Faltaram R$ 100 mil para acertar!"*.
-  2. O **Corretor 2** entra na sala. A missão dele **NÃO** é avaliar a casa do zero — a missão dele é **olhar só para os R$ 100 mil de erro que o Corretor 1 deixou passar** e descobrir o que faltou olhar (ex: *"Ah, o Corretor 1 esqueceu de olhar que tem piscina, isso soma +R$ 80 mil"*). Agora o palpite da dupla está em **R$ 480 mil** (só faltam R$ 20 mil!).
-  3. O **Corretor 3** entra focado exclusivamente em consertar os **R$ 20 mil** que ainda faltam, e assim por diante até o Corretor 100!
-### O Resultado desse Duelo no seu Notebook (`09-Random-Forests-and-XGBoost.ipynb`)
+
+## 8. Ensembles: Random Forest (*Bagging*) vs. XGBoost (*Boosting*)
+
+* **Notebook:** [09-Random-Forests-and-XGBoost.ipynb](./09-Random-Forests-and-XGBoost.ipynb)
+* **Por que existem?** Uma Árvore de Decisão sozinha sofre de **alta variância**: mudar poucas linhas do dataset pode mudar completamente a árvore inteira. Combinar dezenas/centenas de árvores (*Ensemble Learning*) resolve isso de duas maneiras opostas:
+
+| Aspecto | Random Forest (**Bagging**) | XGBoost (**Gradient Boosting**) |
+| :--- | :--- | :--- |
+| **Como treina** | Árvores profundas **independentes em paralelo** | Árvores rasas **em sequência (fila indiana)** |
+| **Fonte de diversidade** | *Bootstrap* (amostragem com reposição) + subconjunto aleatório de colunas em cada split (`max_features`) | Cada nova árvore tenta prever o **erro residual / gradiente** deixado pela soma das anteriores |
+| **O que reduz mais** | **Variância (Overfitting)** | **Viés (Underfitting)** e Variância (com `learning_rate` + regularização L1/L2 nas folhas) |
+| **Sensibilidade a escala** | Não precisa escalar | Não precisa escalar |
+| **Risco principal** | Pode ser pesado em memória se árvores forem gigantes | Pode dar *overfitting* se `n_estimators` ou `learning_rate` forem altos demais sem parada antecipada |
+
 ![Qual modelo chegou mais perto da linha pontilhada perfeita?](./assets/Random-Forests-XGBoost_img1.png)
 
 ![Placar Final: Nota (R²), Erro (MSE) e Velocidade](./assets/Random-Forests-XGBoost_img2.png)
-Olhe o placar final no **Slide 2**:
-* **Quem acertou mais?** O **XGBoost** tirou nota **$R^2 = 0.837$** (erro de `0.214`), vencendo a **Random Forest** que tirou **$0.805$** (erro de `0.256`). Faz todo sentido: aprender com os erros do colega anterior é mais inteligente do que 100 pessoas chutando no escuro sem conversar!
-* **Quem foi mais rápido?** A Random Forest demorou **16 segundos** para treinar, enquanto o XGBoost terminou em **menos de 1 segundo (`0.67s` — 24 vezes mais rápido!)**, porque o XGBoost usa árvores pequenininhas e super rápidas para dar pequenos passos de correção.
+
+* No Notebook `09`, usando árvores pequenas e otimizadas, o **XGBoost** superou a **Random Forest** em precisão ($R^2 = 0.837$ vs $0.805$; MSE $0.214$ vs $0.256$) **e** treinou ~24x mais rápido (`0.67s` vs `16s`).
+
 ---
-## 9. Dicionário "Tradutor de Prova" (Para Gabaritar os Quizzes da IBM)
-Quando você estiver fazendo os quizzes do curso, eles vão usar frases técnicas. Use esta tabela para traduzir instantaneamente o que a questão está perguntando:
-| Quando a questão da prova falar... | Traduza na sua cabeça para... | Qual é a resposta certa para marcar? |
+
+## 9. Regularização e Seleção Automática de Features: Ridge (L2) vs. Lasso (L1)
+
+* **Notebook:** [14-Regularization-in-Linear-Regression.ipynb](./14-Regularization-in-Linear-Regression.ipynb)
+
+### Qual problema a Regressão Comum (OLS) enfrenta em dados do mundo real?
+Quando você tem **poucos exemplos e dezenas/centenas de variáveis correlacionadas ou inúteis** (como no experimento com `make_regression(n_samples=100, n_features=100, n_informative=10)`), ou quando existem **outliers extremos**, o `LinearRegression` tenta ajustar todos os coeficientes livres possíveis. Resultado: alguns pesos $w_j$ explodem para $+500$ enquanto outros vão para $-498$ tentando cancelar ruído no treino — causando **Overfitting grave**.
+
+### A Solução: Colocar um "Freio no Tamanho dos Pesos" dentro da Função de Custo
+Em vez de minimizar apenas o erro de previsão, somamos uma **multa proporcional ao tamanho dos coeficientes**, controlada pelo hiperparâmetro **`alpha` ($\alpha$)** (quanto maior `alpha`, mais forte o freio e menor o risco de *overfitting*, porém com risco de *underfitting* se exagerar):
+
+1. **Ridge Regression — Regularização L2 (`Ridge(alpha=...)`):**
+   $$\text{Custo}_{\text{Ridge}} = \text{MSE} + \alpha \sum_{j=1}^p w_j^2$$
+   * **Como pensa:** Pune os pesos **ao quadrado**. Se um coeficiente for `10`, vira `100` na multa; se for `0.1`, vira `0.01`. Por isso, ela **aperta fortemente pesos gigantes** e divide o peso igualmente entre features correlacionadas (*multicolinearidade*), **mas quase nunca zera um coeficiente totalmente**.
+   * **Quando usar:** quando muitas features contribuem um pouco e há multicolinearidade entre elas.
+
+2. **Lasso Regression — Regularização L1 (`Lasso(alpha=...)`):**
+   $$\text{Custo}_{\text{Lasso}} = \text{MSE} + \alpha \sum_{j=1}^p |w_j|$$
+   * **Como pensa:** Pune o **valor absoluto**. Mesmo quando um peso já é pequeno, cada décimo dele ainda paga multa linear constante — empurrando pesos de variáveis fracas **exatamente para `0.0`**!
+   * **Superpoder (Feature Selection Automática):** no Notebook `14`, em um espaço com 100 colunas onde só 10 importavam de verdade, o Lasso zerou dezenas de variáveis ruidosas e permitiu filtrar apenas as features realmente informativas (melhorando drasticamente o $R^2$ ao remover ruído!).
+
+3. **Bônus — ElasticNet (`ElasticNet(alpha=..., l1_ratio=...)`):** mistura L1 + L2 para herdar seleção de variáveis do Lasso e estabilidade em grupos correlacionados do Ridge.
+
+![OLS vs Ridge vs Lasso em Outliers e Seleção de Features](./assets/comparacao_regularizacao_ols_ridge_lasso.png)
+
+> [!CAUTION]
+> **Regra de ouro em Ridge, Lasso e Regressão Logística com `penalty='l1'/'l2'`:**
+> Você **precisa** usar `StandardScaler` antes! Como a penalidade soma os valores de $w_j$, uma variável medida em milímetros teria peso minúsculo e outra em quilômetros teria peso gigante só por causa da unidade, enganando a penalização.
+
+---
+
+## 10. Aprendizado Não Supervisionado — Clustering: K-Means vs. DBSCAN vs. HDBSCAN
+
+* **Notebooks:** [10-K-Means-Clustering.ipynb](./10-K-Means-Clustering.ipynb), [11-DBSCAN-and-HDBSCAN-Clustering.ipynb](./11-DBSCAN-and-HDBSCAN-Clustering.ipynb), [17-Evaluating-K-Means-Clustering.ipynb](./17-Evaluating-K-Means-Clustering.ipynb)
+
+Aqui **não existe coluna `y` (sem gabarito!)**. O objetivo é descobrir agrupamentos naturais diretamente na geometria dos dados (ex: segmentação de clientes no `Cust_Segmentation.csv` ou agrupamento geográfico de museus pelo Canadá).
+
+### 10.1 K-Means — "Agrupamento por Centróides" (`10`)
+* **Como funciona em 4 passos:**
+  1. Sorteia $K$ centros iniciais (**`init="k-means++"`** espalha melhor esses pontos iniciais para não cair em mínimos locais ruins; `n_init=12` roda 12 tentativas e fica com a melhor!).
+  2. Atribui cada ponto ao **centróide mais próximo** (distância Euclidiana).
+  3. Recalcula cada centróide como a **média geométrica** dos pontos daquele grupo.
+  4. Repete passos 2 e 3 até os centróides pararem de mexer.
+* **O que ele minimiza?** A **Inércia / WCSS** (*Within-Cluster Sum of Squares*): soma das distâncias ao quadrado entre cada ponto e o seu centróide.
+* **Os 3 defeitos estruturais do K-Means (que explicam por que DBSCAN/HDBSCAN existem!):**
+  1. Você precisa **adivinhar o número `n_clusters` ($K$) antes**.
+  2. Ele enxerga o mundo como **bolhas esféricas (Voronoi)** — se os dados formarem duas meias-luas ou anéis, ele corta ao meio errado!
+  3. **Não sabe dizer "isso é um outlier"**: todo ponto esquisito é forçado para dentro de algum grupo, puxando o centróide para longe.
+
+### 10.2 DBSCAN — "Agrupamento por Densidade" (`11`)
+Ao invés de procurar centros esféricos, o **`DBSCAN(eps=..., min_samples=...)`** procura regiões onde há **muita gente aglomerada perto**:
+* **`eps` ($\varepsilon$):** raio da vizinhança em volta de um ponto.
+* **`min_samples`:** quantidade mínima de pontos dentro desse raio `eps` para formar um núcleo denso.
+* Ele classifica todo ponto em 3 tipos:
+  * **Core Point (Ponto Central):** tem pelo menos `min_samples` vizinhos dentro de `eps`.
+  * **Border Point (Ponto de Borda):** tem poucos vizinhos, mas está dentro do raio de um *Core Point*.
+  * **Noise / Outlier (Ruído = label `-1`):** está isolado no vazio $\rightarrow$ **não entra em cluster nenhum!**
+* **Vantagens:** descobre $K$ sozinho, acompanha formatos malucos/curvos e isola outliers automaticamente.
+* **Onde o DBSCAN trava?** Se você tem no mesmo dataset um cluster bem compacto (denso) e outro cluster mais espalhado (menos denso), **nenhum valor único de `eps` acerta os dois ao mesmo tempo**: um `eps` pequeno estilhaça o cluster aberto em vários microgrupos e ruído; um `eps` grande funde os dois grupos apertados em um só!
+
+### 10.3 HDBSCAN — "DBSCAN Hierárquico Adaptativo" (`11`)
+O **`HDBSCAN(min_cluster_size=..., min_samples=...)`** resolve justamente a limitação do `eps` fixo!
+* Em vez de congelar um único raio `eps`, ele constrói uma **hierarquia completa de densidades** (conectando regiões do mais denso ao mais esparso, igual uma árvore de níveis do mar descendo) e seleciona automaticamente os clusters mais **estáveis e persistentes** ao longo da escala — **encontrando clusters com densidades bem diferentes no mesmo mapa** sem precisar calibrar `eps`!
+
+![Comparação visual K-Means vs DBSCAN vs HDBSCAN](./assets/comparacao_clustering_kmeans_dbscan_hdbscan.png)
+
+### 10.4 Como Dar Nota para Clustering Se Não Existe Gabarito `y`? (`17`)
+
+Quando não há acurácia nem $R^2$, medimos **coesão interna** (pontos do mesmo grupo bem juntinhos) vs. **separação externa** (grupos bem longe entre si):
+
+1. **Método do Cotovelo (*Elbow Method* com Inércia / WCSS):** Plotamos a Inércia para $k = 2, 3, 4, \dots$. Quanto mais clusters, menor a distância até os centros (com $k = N$, a Inércia é zero!). Procuramos o ponto de dobra ("cotovelo") onde adicionar novos clusters passa a dar ganho marginal mínimo.
+2. **Silhouette Score (`silhouette_score` $\in [-1, +1]$):**
+   Para cada ponto $i$, compara:
+   * $a(i)$: distância média até os **colegas do mesmo cluster** (menor = grupo coeso).
+   * $b(i)$: distância média até o **cluster vizinho mais próximo** (maior = grupo isolado).
+   $$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$
+   * Perto de **`+1.0`**: ponto perfeitamente encaixado no seu grupo e longe dos outros.
+   * Perto de **`0.0`**: ponto bem na fronteira indecisa entre dois clusters.
+   * **`< 0.0`**: ponto provavelmente colocado no cluster errado!
+3. **Davies-Bouldin Index (`davies_bouldin_score`):** Calcula a razão entre a dispersão interna de cada cluster e a distância até o outro cluster mais parecido. **Quanto MENOR (mais perto de `0`), melhor**.
+4. **Estabilidade (`17`):** Se você rodar o K-Means sem fixar `random_state` e os clusters mudarem muito de forma ou Inércia entre execuções, o `k` escolhido ou os dados não têm fronteiras naturais estáveis.
+
+![Método do Cotovelo e Silhouette Score para K=2..8](./assets/comparacao_cotovelo_e_silhueta.png)
+
+---
+
+## 11. Redução de Dimensionalidade: PCA vs. t-SNE vs. UMAP
+
+* **Notebooks:** [12-Principal-Component-Analysis-PCA.ipynb](./12-Principal-Component-Analysis-PCA.ipynb), [13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb](./13-tSNE-and-UMAP-Dimensionality-Reduction.ipynb)
+
+### Por que precisamos reduzir dimensões?
+* **Maldição da Dimensionalidade (*Curse of Dimensionality*):** Quando você passa de 3 para 500 features, o volume do espaço explode e **quase todos os pontos ficam igualmente distantes entre si**, quebrando algoritmos baseados em distância (KNN, K-Means) e multiplicando o risco de *overfitting* e o tempo de treino.
+* Além disso, humanos só enxergam em 2D e 3D!
+
+### 11.1 PCA (*Principal Component Analysis*) — Projeção Linear Ortogonal (`12`)
+Imagine segurar uma árvore 3D e girar uma lanterna até encontrar o ângulo onde a sombra dela na parede (2D) preserva **o máximo possível do tamanho e da forma original**:
+* **PC1 (1º Componente Principal):** nova direção (combinação linear das colunas originais) ao longo da qual os dados têm a **maior variância possível**.
+* **PC2 (2º Componente Principal):** direção perpendicular (**ortogonal, correlação zero!**) à PC1 que captura a maior parte da variância restante, e assim por diante.
+* **No `sklearn`:** após rodar `StandardScaler()` (obrigatório para variáveis com escalas diferentes não monopolizarem a variância!), `pca.explained_variance_ratio_` diz quantos % da informação original cada componente carrega (por exemplo, reter componentes suficientes até somar **95% da variância explicada**).
+* **Ponto forte:** Rápido, determinístico, reduz ruído/colinearidade e **aceita `.transform(X_test)`** dentro de `Pipeline` (como você fez no Notebook `18`!).
+* **Limitação:** Por ser uma **rotação estritamente linear**, se as classes formam espirais, roscas ou camadas não-lineares, a sombra plana do PCA amassa grupos diferentes uns em cima dos outros!
+
+### 11.2 t-SNE (*t-Distributed Stochastic Neighbor Embedding*) (`13`)
+* **Como pensa:** Em vez de girar planos rígidos, o t-SNE calcula a probabilidade de dois pontos serem "vizinhos próximos" no espaço original (alta dimensão) e rearranja os pontos no mapa 2D para que **quem era vizinho lá em cima continue grudadinho aqui embaixo**.
+* **Hiperparâmetro-chave (`perplexity`):** Controla o equilíbrio entre foco super-local vs. estrutura de vizinhança mais ampla (tipicamente entre `5` e `50`; no Notebook `13` usou `perplexity=30`).
+* **Limitações severas:**
+  1. **Não possui `.transform()` para dados novos** (não serve diretamente como pré-processador de inferência em produção; serve para **visualização exploratória / EDA**).
+  2. **Tamanhos de clusters e distâncias globais entre ilhas distantes no t-SNE não são literais**: duas ilhas muito afastadas no 2D não estão necessariamente tão distantes no original!
+
+### 11.3 UMAP (*Uniform Manifold Approximation and Projection*) (`13`)
+* **Como pensa:** Constrói um grafo topológico de vizinhança (*fuzzy simplicial set* em variedades/manifolds) e otimiza o layout 2D usando descida estocástica.
+* **Principais hiperparâmetros:**
+  * `n_neighbors`: semelhante à perplexidade — valores baixos preservam microdetalhes locais; valores altos preservam a topologia global.
+  * `min_dist` e `spread`: controlam quão apertados os pontos ficam dentro de cada cluster no gráfico.
+* **Por que o mercado ama o UMAP?** Preserva muito bem a separação local **e** preserva melhor a relação global entre clusters do que o t-SNE, é **muito mais rápido** em datasets grandes **e implementa `.fit()` + `.transform()`**, podendo alimentar modelos em pipeline!
+
+![Comparação PCA vs t-SNE em 64 dimensões para 2D](./assets/comparacao_pca_vs_tsne.png)
+
+| Critério | PCA | t-SNE | UMAP |
+| :--- | :---: | :---: | :---: |
+| **Tipo de transformação** | Linear (rotação ortogonal) | Não-linear (*manifold*) | Não-linear (*manifold* / grafo) |
+| **O que preserva** | Variância global | Vizinhanças locais | Vizinhanças locais + boa estrutura global |
+| **Aceita novos dados (`.transform()`)?** | **Sim** (ótimo em `Pipeline`) | **Não** (só EDA/visualização) | **Sim** (uso exploratório e ML) |
+| **Velocidade em datasets grandes** | Muito rápido | Lento ($O(N^2)$ / Barnes-Hut) | Rápido |
+| **Reprodutibilidade sem seed** | Determinístico (único) | Estocástico (muda com seed) | Estocástico |
+
+---
+
+## 12. Avaliação Profunda & Engenharia de Produção (`15`–`20`)
+
+### 12.1 Classificação Além da Acurácia (`15-Evaluating-Classification-Models.ipynb`)
+No Notebook `15`, você classificou tumores de mama (`load_breast_cancer`) após injetar ruído artificial nas features, comparando **`KNeighborsClassifier(n_neighbors=5)`** vs **`SVC(kernel='linear', C=1)`**.
+
+#### Os 4 Quadrantes da Matriz de Confusão
+* **VP (Verdadeiro Positivo / TP):** tinha a doença (ou ia chover / era fraude) e o modelo **acertou** dizendo SIM.
+* **VN (Verdadeiro Negativo / TN):** não tinha e o modelo **acertou** dizendo NÃO.
+* **FP (Falso Positivo / Erro Tipo I — "Alarme Falso"):** não tinha, mas o modelo disse SIM (ex: cliente honesto bloqueado por engano; exame pede biópsia extra).
+* **FN (Falso Negativo / Erro Tipo II — "Deixar Passar"):** **TINHA**, mas o modelo disse NÃO! No câncer, significa liberar paciente doente para casa achando que está saudável — **o erro de maior custo humano!**
+
+#### As 4 Métricas Essenciais do `classification_report`
+| Métrica | Fórmula | Tradução Direta | Quando priorizar? |
+| :--- | :---: | :--- | :--- |
+| **Precision** | $\frac{VP}{VP + FP}$ | *"Das vezes que disparei o alerta, quantas % eram reais?"* | Quando **Falso Positivo** custa caro (ex: filtro de spam marcando e-mail importante de trabalho; bloqueio agressivo de cliente VIP). |
+| **Recall / Sensitivity (TPR)** | $\frac{VP}{VP + FN}$ | *"De todos os casos positivos que existiam de verdade, quantos % eu capturei?"* | Quando **Falso Negativo** é inaceitável (ex: triagem de câncer, fraude financeira, risco de chuva forte / alerta climático). |
+| **F1-Score** | $2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$ | Média harmônica entre Precision e Recall (só fica alta se **ambas** forem boas!). | Quando há **classes desbalanceadas** e você precisa equilibrar alarmes falsos e casos perdidos. |
+| **Specificity (TNR)** | $\frac{VN}{VN + FP}$ | *"De todos os casos sadios/negativos, quantos % eu liberei corretamente?"* | Saúde/diagnóstico para evitar falsos diagnósticos em massa. |
+
+* **Diagnóstico Treino vs. Teste no Notebook `15`:** Comparar `classification_report` no **treino** vs **teste** em dados ruidosos mostrou a assinatura clássica de *Overfitting*: modelos muito locais como KNN podem acertar mais no treino decorando o ruído local e cair mais no teste, enquanto margens lineares regularizadas (`SVC(C=1)`) seguram melhor a generalização.
+* **ROC-AUC vs. Precision-Recall AUC:**
+  * A **Curva ROC** varia o limiar de probabilidade de `0.0` até `1.0` plotando `TPR (Recall)` vs `FPR (Taxa de Falso Alarme)`. `ROC-AUC = 1.0` é separação perfeita; `0.5` é moeda jogada para o alto.
+  * Em datasets hiper-desbalanceados (como `0,17%` de fraude), muitos Falsos Negativos ou Positivos podem diluir o `FPR` porque `TN` é gigantesco — por isso olhar **`Precision-Recall AUC` + `Recall` da classe minoritária** nunca engana.
+
+---
+
+### 12.2 Avaliação em Regressão & Análise de Resíduos (`16-Evaluating-Random-Forest.ipynb`)
+No Notebook `16` (*California Housing*, `RandomForestRegressor(n_estimators=100)`), o curso mostrou que **$R^2$ e MSE sozinhos escondem falhas graves**. É indispensável olhar para:
+1. **Gráfico Real vs. Previsto (*Actual vs Predicted*):** idealmente todos os pontos abraçam a diagonal $y = \hat{y}$.
+2. **Análise de Resíduos ($e_i = y_i - \hat{y}_i$):**
+   * Um bom modelo produz resíduos distribuídos como um sino simétrico em zero (**ruído aleatório sem padrão**).
+   * Se o gráfico mostra forma de funil (erro cresce para casas mais caras) ou uma linha diagonal cortada no teto (**clipping**: no California Housing, preços reais foram truncados em US\$ 500.000!), o modelo sofre viés sistemático nas faixas altas porque está tentando prever um teto artificial!
+3. **Armadilha ao ler `feature_importances_`:** Quando duas features são fortemente colineares (como `Latitude`/`Longitude` juntas ou `MedInc` correlacionado a renda local), a Random Forest pode **dividir o crédito de importância entre elas**, fazendo variáveis geograficamente decisivas parecerem menores isoladamente.
+
+---
+
+### 12.3 Engenharia de Pipelines, `ColumnTransformer`, `StratifiedKFold` e `GridSearchCV` (`18`, `19`, `20`)
+
+Nos três últimos laboratórios (`Iris` + `Titanic` + `Australian Weather Rainfall`), você montou a arquitetura profissional usada em produção e em competições reais para **zerar o risco de *Data Leakage*** e **automatizar o tuning**:
+
+```mermaid
+flowchart LR
+    X["X_train (Dados Brutos Mistos)"] --> CT["ColumnTransformer"]
+    CT -->|"Colunas Numéricas"| N["Pipeline Numérico: SimpleImputer(median) + StandardScaler"]
+    CT -->|"Colunas Categóricas"| C["Pipeline Categórico: SimpleImputer(most_frequent) + OneHotEncoder(handle_unknown='ignore')"]
+    N --> CON["Concatenação Limpa"]
+    C --> CON
+    CON --> MOD["Estimador (RandomForest / LogisticRegression / PCA+KNN)"]
+    MOD --> GS["GridSearchCV + StratifiedKFold (cv=5)"]
+```
+
+#### Anatomia de Produção (Baseada diretamente nos Notebooks `19` e `20`):
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+
+# 1. Pré-processamento específico por tipo de coluna (sem vazamento!)
+numeric_transformer = Pipeline(steps=[
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+])
+
+categorical_transformer = Pipeline(steps=[
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("onehot", OneHotEncoder(handle_unknown="ignore")),
+])
+
+preprocessor = ColumnTransformer(transformers=[
+    ("num", numeric_transformer, numeric_features),
+    ("cat", categorical_transformer, categorical_features),
+])
+
+# 2. Pipeline completo: Pré-processamento -> Modelo
+pipeline = Pipeline(steps=[
+    ("preprocessor", preprocessor),
+    ("classifier", RandomForestClassifier(random_state=42)),
+])
+
+# 3. Grade de Hiperparâmetros (usa prefixo 'step__parametro')
+param_grid = {
+    "classifier__n_estimators": [50, 100],
+    "classifier__max_depth": [None, 10, 20],
+    "classifier__min_samples_split": [2, 5],
+}
+
+# 4. Validação Cruzada Estratificada (mantém 76.3% / 23.7% em todos os folds!)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+# 5. GridSearchCV treina o preprocessor SÓ nos folds de treino a cada iteração!
+grid = GridSearchCV(estimator=pipeline, param_grid=param_grid, cv=cv, scoring="accuracy", verbose=2)
+grid.fit(X_train, y_train)
+```
+
+#### Por que essa arquitetura é ouro na prática? (Lições do Capstone `20`)
+* **Sem *Data Leakage* na Cross-Validation:** Em cada uma das 5 dobras do `StratifiedKFold`, o `GridSearchCV` roda `preprocessor.fit_transform()` exclusivamente nas 4 dobras de treino e só aplica `.transform()` na dobra de validação. Nenhum dado de validação ou teste jamais contamina médias, modas, categorias ou escalas.
+* **Engenharia de Features & Leakage no Australian Weather:**
+  * Filtragem geográfica focada em Melbourne (`Melbourne`, `MelbourneAirport`, `Watsonia`) reduziu para **`7.557` registros limpos**.
+  * Criação da feature cíclica `Season` a partir de `Date` para capturar sazonalidade climática sem memorizar datas exatas do passado.
+  * **`OneHotEncoder(handle_unknown="ignore")`**: garante que, se surgir uma categoria inédita em produção (ou em algum fold de teste), a API não quebra com exceção.
+* **Comparação Final Executada no Capstone (`1.512` amostras de teste):**
+  * **`RandomForestClassifier` (tunado):** **84%** acurácia (`1.273 / 1.512`), **51% TPR / Recall** (`183 / 358` dias de chuva detectados), identificando **`Humidity3pm`** como preditor dominante.
+  * **`LogisticRegression` (L1/L2 tunada):** **83%** acurácia (`1.252 / 1.512`), **51% TPR / Recall** (`182 / 358`).
+  * **Conclusão de Engenharia:** Em dados desbalanceados (`76,3%` sem chuva / `23,7%` com chuva), embora a acurácia total seja alta (`83–84%`), um **Recall de 51% na classe positiva** revela o próximo passo natural em projetos reais: ajustar limiar de decisão (*threshold tuning*), usar `class_weight='balanced'` ou testar **XGBoost / Gradient Boosting** mirando especificamente elevar o Recall de dias chuvosos!
+
+---
+
+## 13. Dicionário "Tradutor de Prova & Entrevista Técnica" (Todos os 21 Tópicos)
+
+Use esta tabela para traduzir instantaneamente o jargão técnico das provas da IBM e entrevistas de ML Engineer:
+
+| Quando perguntarem ou descreverem... | Traduza mentalmente para... | Resposta Técnica Precisa |
 | :--- | :--- | :--- |
-| *"O modelo tem alto erro no teste, mas erro quase zero no treino"* | O aluno decorou o simulado com a mancha de café! | **Overfitting (Sobreajuste) / Alta Variância.** Solução: diminuir a profundidade da árvore (`max_depth`), aumentar os vizinhos ($K$) no KNN ou tirar colunas inúteis. |
-| *"Qual modelo é um Lazy Learner (aprendiz preguiçoso) / instance-based?"* | Qual modelo não estuda antes da prova e só olha para o lado na hora da pergunta? | **KNN (K-Nearest Neighbors).** Ele só guarda os dados e mede a distância até os vizinhos na hora de prever. |
-| *"Qual é a saída da função Sigmóide na Regressão Logística?"* | O que aquela curva em "S" entrega antes de decidirmos Sim ou Não? | Uma **probabilidade entre 0 e 1 (0% e 100%)**. |
-| *"Qual critério a Árvore de Decisão usa para escolher qual pergunta fazer primeiro?"* | Como ela escolhe a pergunta que melhor organiza a gaveta de meias? | Reduzir a impureza (**Índice de Gini** ou **Entropia**), buscando o maior **Ganho de Informação (*Information Gain*)**. |
-| *"E como a Árvore de Regressão faz para prever um número?"* | O que tem dentro da gaveta final quando queremos prever gorjetas de táxi? | Ela corta os dados para diminuir a diferença entre os números (**MSE / Variância**) e responde com a **média** dos valores que caíram naquela folha. |
-| *"Por que o SVM é tão resistente a pontos distantes?"* | Para quem a tropa de choque olha na hora de abrir a avenida entre as torcidas? | Porque ele depende **apenas dos Vetores de Suporte** (os pontos mais próximos da fronteira). Pontos longe da divisa não mudam a linha. |
-| *"Para que serve o Kernel Trick no SVM?"* | O soco por baixo da toalha de mesa para separar feijão de arroz! | Para **projetar dados que estão misturados (não-lineares) para uma dimensão mais alta**, onde fica possível separá-los com um corte reto. |
-| *"Qual a diferença entre Bagging (Random Forest) e Boosting (XGBoost)?"* | Os 100 corretores em salas separadas vs. em fila indiana! | **Bagging (Random Forest)** treina árvores independentes **em paralelo** e vota para **reduzir a Variância (Overfitting)**. **Boosting (XGBoost)** treina árvores **em sequência**, onde cada uma corrige o **erro (resíduo)** da anterior. |
-| *"Em quais modelos eu sou obrigado a usar `StandardScaler` (padronizar escala)?"* | Quem usa fita métrica e se confunde entre Salário (milhares) e Idade (dezenas)? | **KNN e SVM** (e Regressão Logística). **Árvores (Decision Tree, Random Forest, XGBoost) NÃO precisam** disso! |
-
+| *"Alto erro no teste, erro quase zero no treino"* | Decorou o simulado + ruído! | **Overfitting / Alta Variância.** Solução: poda (`max_depth`), mais regularização (`alpha` maior ou `C` menor), `K` maior no KNN, ou menos features ruidosas. |
+| *"Alto erro já nos dados de treino"* | Modelo simplório demais! | **Underfitting / Alto Viés.** Solução: modelo mais expressivo (polinomial, árvore mais profunda, XGBoost, Kernel RBF) ou novas features. |
+| *"Qual modelo é um Lazy Learner / instance-based?"* | Não aprende nada no `.fit()`, só mede vizinhos na hora da prova | **KNN (K-Nearest Neighbors).** Exige `StandardScaler` e sofre em datasets gigantes na inferência. |
+| *"Qual é a saída bruta da Regressão Logística antes do corte 0.5?"* | A saída da curva em "S" | Uma **probabilidade calibrada via função Sigmóide $\in (0, 1)$**, otimizada minimizando o **Log Loss**. |
+| *"Como a Árvore escolhe onde dividir categorias vs números?"* | Quem organiza melhor as gavetas | Classificação: reduz **Gini** ou **Entropia** (maior *Information Gain*). Regressão: testa **Midpoints** e reduz **MSE / Variância** respondendo a **média** da folha. |
+| *"Por que SVM resiste a pontos distantes?"* | Só olha para a primeira fila da divisa | Depende **apenas dos Vetores de Suporte** na borda da margem; pontos longe da fronteira têm peso zero na reta. |
+| *"Para que serve o `epsilon` ($\varepsilon$) no SVR?"* | A largura do corredor sem multa | Define a **largura do tubo de tolerância ($\pm\varepsilon$)** onde desvios não são punidos. |
+| *"Bagging (Random Forest) vs. Boosting (XGBoost)?"* | 100 corretores isolados vs. fila corrigindo o erro do anterior | **Bagging:** árvores paralelas votam para reduzir **Variância**. **Boosting:** árvores sequenciais corrigem resíduos para reduzir **Viés e Variância**. |
+| *"Ridge (L2) vs. Lasso (L1)?"* | Aperto suave vs. tesoura que zera colunas | **Ridge (L2)** encolhe todos os pesos ($\sum w_j^2$), ótimo para colinearidade. **Lasso (L1)** usa $\sum \|w_j\|$ e **zera coeficientes** fracos (*Feature Selection*). |
+| *"K-Means vs. DBSCAN vs. HDBSCAN?"* | Bolhas centradas vs. densidade fixa vs. densidade adaptativa | **K-Means:** exige $k$, assume bolhas esféricas, engole ruído. **DBSCAN:** segue curvas e marca ruído (`-1`), mas usa `eps` único. **HDBSCAN:** acha clusters com densidades diferentes sem `eps` global. |
+| *"Como avaliar Clustering sem coluna `y`?"* | Medir se cada turma é apertada e longe das outras | **Elbow Method (Inércia)**, **Silhouette Score** ($-1$ a $+1$, maior é melhor) e **Davies-Bouldin Index** (menor é melhor). |
+| *"PCA vs. t-SNE vs. UMAP?"* | Sombra linear vs. mapa de vizinhos para ver vs. grafo rápido transformável | **PCA:** linear, ordena variância explicada, vai em `Pipeline`. **t-SNE:** não-linear local (`perplexity`), só visualização (sem `.transform()`). **UMAP:** rápido, preserva local+global e aceita `.transform()`. |
+| *"Precisão vs. Recall vs. F1-Score?"* | Certeza do alarme vs. não deixar doente/fraude escapar | **Precision:** evita Falso Positivo. **Recall (TPR):** evita Falso Negativo (crucial em câncer/fraude/chuva). **F1:** média harmônica equilibrando ambos. |
+| *"Por que usar `Pipeline` + `ColumnTransformer` + `StratifiedKFold`?"* | Blindagem contra Data Leakage e código limpo | Garante que imputação, `StandardScaler`, `OneHotEncoder` e `PCA` ajustem estatísticas **exclusivamente nos folds de treino**, preservando a proporção das classes. |
+| *"Quais modelos OBRIGATORIAMENTE exigem `StandardScaler`?"* | Modelos que medem distância ou somam magnitude de peso | **KNN, SVM/SVR, K-Means, DBSCAN/HDBSCAN, PCA, t-SNE/UMAP, Ridge, Lasso e Regressão Logística.** *(Árvores, Random Forest e XGBoost **NÃO** exigem!)*. |
 
 ---
 
-## 🎯 Bússola Rápida para o Exame de Certificação
-Sempre que bater dúvida numa questão ou problema prático, faça duas perguntas mentais:
-1. **Qual é o formato do Alvo (Y)?**
-   - Número contínuo (preço, poluição, gorjeta) → **Regressão**.
-   - Categoria ou probabilidade de Sim/Não (churn, fraude, remédio) → **Classificação**.
-2. **Qual é a natureza dos Dados?**
-   - Relação linear ou proporcional global → **Regressão Linear / Logística**.
-   - Regras de corte 'SE... ENTÃO' e dados tabulares com quebras → **Árvores de Decisão / Regressão**.
-   - Amostras decididas pela proximidade local → **KNN** (lembre de padronizar a escala!).
-   - Fronteiras complexas com foco nos pontos limítrofes → **SVM** (Margem Máxima + Kernel Trick).
-   - Máxima performance combinando modelos → **Random Forest** (paralelo) ou **XGBoost** (sequencial).
+## 14. Bússola Rápida: Qual Algoritmo Escolher na Vida Real?
+
+1. **Você tem a resposta certa (`y`) para treinar?**
+   * **NÃO** → Aprendizado Não Supervisionado:
+     * *Quer agrupar registros semelhantes?* → `K-Means` (grupos compactos e redondos + Elbow/Silhueta) ou `DBSCAN / HDBSCAN` (formas livres, mapas geográficos, detecção de outliers).
+     * *Quer comprimir colunas / acelerar pipeline mantendo variância linear?* → `StandardScaler + PCA`.
+     * *Quer visualizar clusters complexos 50D+ em 2D?* → `UMAP` (ou `t-SNE`).
+   * **SIM** → Aprendizado Supervisionado:
+     * **Alvo Numérico (Regressão):**
+       * Baseline interpretável → `LinearRegression` (ou `Ridge` / `Lasso` se houver muitas features colineares/ruído).
+       * Máxima precisão tabular → `RandomForestRegressor` ou `XGBRegressor` (sempre checando análise de resíduos e RMSE!).
+     * **Alvo Categórico (Classificação):**
+       * Baseline rápido e probabilidades interpretáveis → `StandardScaler + LogisticRegression` (`OvO` ou `Multinomial` se multiclasse ordinal/complexa).
+       * Regras claras para negócio → `DecisionTreeClassifier` (podada via `max_depth`).
+       * Alta dimensão com poucas amostras → `StandardScaler + SVC` (`kernel='rbf'` ou `'linear'`).
+       * Melhor desempenho padrão em tabelas mistas → `ColumnTransformer + RandomForestClassifier / XGBClassifier` dentro de **`Pipeline` + `StratifiedKFold` + `GridSearchCV`**.
+
 ---
 
-## 10. Gabarito Comentado do Quiz Oficial da IBM (As 7 Questões do Teste)
+## 15. Gabarito Comentado do Quiz Oficial da IBM (As 7 Questões do Teste)
 
 Não se sinta mal por ter achado o teste desafiador! As provas de certificação da IBM adoram colocar pegadinhas sutis de vocabulário e contexto prático em inglês. 
 
@@ -283,7 +585,7 @@ Uma empresa de telecomunicações quer usar o histórico comportamental dos clie
 #### 💡 Por que a resposta é **Decision trees (Árvores de Decisão)**?
 1. **Regras Claras e Acionáveis:** O comportamento de cancelamento em operadoras é orientado por regras de corte lógicas (*"SE o contrato for mês a mês E o cliente fez mais de 3 reclamações no suporte, ENTÃO o risco de cancelamento é 85%"*). Árvores de Decisão extraem exatamente essas regras no formato de fluxograma visual.
 2. **Interpretabilidade para Negócios:** O time de retenção e produto da operadora precisa **entender o motivo** do cancelamento para poder agir (ex: oferecer desconto ou trocar roteador para quem caiu naquele nó específico).
-3. **Dados Heterogêneos (Mistura de números e categorias):** Em telecomunicações, temos tabelas com colunas numéricas (meses de conta, gasto em R$) e colunas categóricas (tipo de plano, forma de pagamento). Árvores lidam com isso de forma direta e natural, sem exigir escalonamento prévio.
+3. **Dados Heterogêneos (Mistura de números e categorias):** Em telecomunicações, temos tabelas com colunas numéricas (meses de conta, gasto financeiro) e colunas categóricas (tipo de plano, forma de pagamento). Árvores lidam com isso de forma direta e natural, sem exigir escalonamento prévio.
 
 #### ⚠️ Por que as outras alternativas estão incorretas?
 * **Naïve Bayes:** Assume a premissa de que todas as características são estatisticamente independentes entre si. Em telecom isso é irreal: o valor da fatura está diretamente ligado ao plano contratado e ao uso de serviços adicionais.
@@ -456,7 +758,7 @@ Sua equipe está avaliando um modelo e constatou que ele erra as previsões **at
 ### 📋 Tabela Resumo: Para Gabaritar nas Próximas Tentativas!
 
 | Questão | Tema Central | Pista no Enunciado | Resposta Correta | Regra Prática de Memorização |
-| :---: | :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: | :--- |
 | **Q1** | Modelo para Churn | *Customer behavior to predict service cancellations* | **Decision trees** | Cancelamento em telecom = Regras de corte lógicas, acionáveis e interpretáveis. |
 | **Q2** | Multiclasse OvO | *Decided in case of a tie* | **Probability weighing** | Maioria elege no início, mas **empate se resolve somando a probabilidade** contínua. |
 | **Q3** | Entropia | *How mixed data is mixed at each node* | **Level of disorder or randomness** | Entropia em ciências exatas e IA é sempre **medida de desordem ou incerteza**. |
