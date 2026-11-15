@@ -11,7 +11,8 @@ Each course module is organized into its own dedicated directory with standardiz
 | Module | Directory | Status | Key Highlights |
 | :--- | :--- | :---: | :--- |
 | **Machine Learning with Python** | [Machine-Learning-with-Python/](./Machine-Learning-with-Python/) | ✅ Completed | 20 standardized notebooks covering Supervised & Unsupervised ML, Pipelines, `GridSearchCV`, [Didactic Study Guide (PT-BR)](./Machine-Learning-with-Python/Estudos.md), and [Australian Weather Rainfall Capstone](./Machine-Learning-with-Python/20-Final-Project-Australian-Rainfall-Classifier.ipynb). |
-| *Upcoming Modules* | *(Deep Learning, PyTorch, Keras, GenAI, RAG, Agents...)* | 🚧 In Progress | Directories will be added progressively as each module is completed. |
+| **Introduction to Deep Learning & Neural Networks with Keras** | [Deep-Learning-and-Neural-Networks-with-Keras/](./Deep-Learning-and-Neural-Networks-with-Keras/) | 🚧 In Progress | Module started (`01` lab): [Artificial Neural Networks — Forward Propagation](./Deep-Learning-and-Neural-Networks-with-Keras/01-Artificial-Neural-Networks-Forward-Propagation.ipynb) built from scratch with NumPy. |
+| *Upcoming Modules* | *(PyTorch, Deep Learning with Keras & TensorFlow, GenAI, RAG, Agents...)* | ⏳ Planned | Directories will be added progressively as each module is started and completed. |
 
 ---
 
